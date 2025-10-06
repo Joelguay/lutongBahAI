@@ -8,9 +8,9 @@ plugins: [react()],
     proxy: {
       // Any request starting with /api will be forwarded
       '/api': {
-        target: 'http://localhost:5173', // Your Python server
+        target: 'http://localhost:5000', // Python Flask server
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''), // Remove /api before sending
+        // Do not rewrite; Flask expects the /api prefix
       },
     },
   },

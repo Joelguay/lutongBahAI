@@ -24,11 +24,11 @@ function App() {
       const data = await response.json();
       
       // FIX: The API returns an object like { recipes: [...] }. We need to get the array from data.recipes.
-      if (data.recipes) {
+      if (data.recipes && data.recipes.length > 0) {
         setRecipes(data.recipes);
         setView('list');
       } else {
-        throw new Error("API did not return a valid recipe list.");
+        throw new Error("No recipes returned. Please try again or check the backend logs.");
       }
 
     } catch (e) {

@@ -31,7 +31,8 @@ If your weights are elsewhere, pass `--weights` with the full path when running.
 
 ### 5) Set OpenAI API Key
 ```powershell
-$env:OPENAI_API_KEY="YOUR_OPENAI_KEY"
+# Replace with your own key. Never commit real keys to the repo.
+$env:OPENAI_API_KEY="YOUR_OPENAI_API_KEY"
 ```
 
 ### 6) Run

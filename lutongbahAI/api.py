@@ -36,15 +36,23 @@ latest_detected_ingredients = set()
 
 # --- YOLOv5 Model Loading ---
 try:
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
     yolo_model = torch.hub.load(
         './yolov5',
         'custom',
         path='./train/weights/best.pt',
         source='local',
-        force_reload=True
+        force_reload=False
     )
+    # Move to device and prefer half precision on CUDA
+    yolo_model.to(device)
+    if device == 'cuda':
+        try:
+            yolo_model.half()
+        except Exception:
+            pass
     yolo_model.conf = 0.5
-    logger.info("YOLOv5 model loaded successfully for video streaming.")
+    logger.info(f"YOLOv5 model loaded successfully on device: {device}.")
 except Exception as e:
     logger.error(f"Error loading YOLOv5 model: {e}")
     yolo_model = None
@@ -78,32 +86,58 @@ def generate_frames():
         logger.error("Could not open video source.")
         return
 
+    # Throttle to ~10 FPS to reduce CPU/GPU load
+    target_fps = 10.0
+    frame_interval = 1.0 / target_fps
+    last_time = time.time()
+
     while True:
+        # Simple FPS throttle
+        now = time.time()
+        if now - last_time < frame_interval:
+            time.sleep(max(0, frame_interval - (now - last_time)))
+        last_time = time.time()
+
         success, frame = camera.read()
         if not success:
             break
         else:
-            results = yolo_model(frame)
+            # Optional downscale to speed up inference
+            try:
+                frame = cv2.resize(frame, None, fx=0.75, fy=0.75, interpolation=cv2.INTER_LINEAR)
+            except Exception:
+                pass
+
+            # Inference with no gradients
+            try:
+                with torch.no_grad():
+                    results = yolo_model(frame)
+            except Exception as e:
+                logger.error(f"Inference error: {e}")
+                continue
             
             # ======================================================================
             # CHANGE 2: Extract and store the names of detected ingredients
             # ======================================================================
             detected_names = set()
-            # Loop through the detection results
-            for *box, conf, cls in results.xyxy[0]:
-                # Add the detected class name to our temporary set
-                detected_names.add(yolo_model.names[int(cls)])
+            try:
+                for *box, conf, cls in results.xyxy[0]:
+                    detected_names.add(yolo_model.names[int(cls)])
+            except Exception:
+                detected_names = set()
             # Update the global set with the latest detections
             latest_detected_ingredients = detected_names
             
-            rendered_frame = results.render()[0]
-            ret, buffer = cv2.imencode('.jpg', rendered_frame)
-            if not ret:
+            try:
+                rendered_frame = results.render()[0]
+                ret, buffer = cv2.imencode('.jpg', rendered_frame)
+                if not ret:
+                    continue
+                frame_bytes = buffer.tobytes()
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+            except Exception:
                 continue
-            
-            frame_bytes = buffer.tobytes()
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
 
 # --- Main Web Page Endpoint ---
 @app.route('/', defaults={'path': ''})
@@ -163,7 +197,12 @@ def generate_recipes_endpoint():
 
         if current_recipe:
             parsed_recipes.append(current_recipe)
-        
+
+        # If nothing parsed, surface a clear error for the frontend
+        if not parsed_recipes:
+            logger.error("LLM returned no parsable recipes. Raw text: %s", recipes_text[:500])
+            return jsonify({'error': 'No recipes could be parsed from LLM response. Check OPENAI_API_KEY, network, and model access.'}), 502
+
         return jsonify({"recipes": parsed_recipes[:5]})
     except Exception as e:
         logger.error(f"Error in generate_recipes_endpoint: {str(e)}")

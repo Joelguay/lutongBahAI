@@ -87,10 +87,19 @@
 }
 
 .card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(100, 100, 100, 0.5);
-  border-radius: 16px;
-  padding: 1.5rem;
+  background-color: none; 
+  box-shadow: none;      
+  border-radius: none;
+  padding: 2rem;
+  color: #1f2937;
+}
+
+.card > p {
+  font-size: 1.25rem; /* ~20px. Adjust this value as you like */
+  font-weight: 500;   /* Optional: makes the text a bit bolder */
+  color: #4b5563;    /* A slightly muted text color */
+  margin-top: 0;
+  margin-bottom: 2rem; /* Add some space below the servings text */
 }
 
 .recipe-steps ol {
@@ -231,4 +240,19 @@
 .ingredient-list {
   list-style-type: none; /* This removes the bullet points */
   padding-left: 0;       /* This removes the default list indentation */
+}
+
+.recipe-section-box {
+  border: 1px solid #e5e7eb; /* A light gray border */
+  border-radius: 8px;           /* Rounded corners for the box */
+  padding: 1rem 1.5rem;         /* Space inside the box */
+  margin-bottom: 1.5rem;        /* Space between the boxes */
+  background-color: #ffffff;    /* A white background for the box */
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); /* A subtle shadow */
+}
+
+/* Optional: Make the h3 headers inside the boxes a little smaller */
+.recipe-section-box h3 {
+  font-size: 1.25rem;
+  margin-top: 0;
 }

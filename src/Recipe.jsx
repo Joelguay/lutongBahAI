@@ -110,31 +110,35 @@ function Recipe({ recipeName, onBack }) {
 
     return (
       <div className="recipe-details">
-        <h3>Ingredients:</h3>
-        {/* Renders ingredients as a simple bulleted list */}
-        <ul>
-          {(structuredRecipe.ingredients || []).map((item, index) => <li key={index}>{item}</li>)}
-        </ul>
 
-        <h3>Step-by-Step Cooking Instructions:</h3>
-        {/* Renders instructions as a numbered list with titles and paragraphs */}
-        <ol>
-          {(structuredRecipe.instructions || []).map((step, index) => (
-            <li key={index} style={{ marginBottom: '1em' }}>
-              <strong>{step.title.replace(/^\d+\.\s*/, '')}</strong>
-              <p style={{ margin: '0.5em 0 0 0' }}>{step.details.join(' ')}</p>
-            </li>
-          ))}
-        </ol>
+        <div className="recipe-section-box">
+          <h3>Ingredients:</h3>
+          <ul>
+            {(structuredRecipe.ingredients || []).map((item, index) => <li key={index}>{item}</li>)}
+          </ul>
+        </div>
+
+        <div className="recipe-section-box">
+          <h3>Step-by-Step Cooking Instructions:</h3>
+          <ol>
+            {(structuredRecipe.instructions || []).map((step, index) => (
+              <li key={index} style={{ marginBottom: '1em' }}>
+                <strong>{step.title.replace(/^\d+\.\s*/, '')}</strong>
+                <p style={{ margin: '0.5em 0 0 0' }}>{step.details.join(' ')}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
         
         {structuredRecipe.notes && structuredRecipe.notes.length > 0 && (
-          <>
+          <div className="recipe-section-box">
             <h3>🍲 Tips & Notes:</h3>
             <ul>
               {(structuredRecipe.notes || []).map((item, index) => <li key={index}>{item}</li>)}
             </ul>
-          </>
+          </div>
         )}
+        
       </div>
     );
   };

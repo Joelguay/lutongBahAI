@@ -15,6 +15,11 @@
         padding: 2rem;
         color: #e47c82;
       }
+
+      .title {
+        font-family: "Fredoka", sans-serif;
+      }
+
       .container {
         max-width: 900px;
         margin: 0 auto;
@@ -26,11 +31,12 @@
         margin-bottom: 2rem;
       }
       .back-link {
-        color: #e47c82;
+        color: #ffff;
         text-decoration: none;
-        border: 1px solid #e47c82;
+        background-color: #e47c82;
         padding: 8px 14px;
-        border-radius: 9999px;
+        border-radius: 50px;
+        font-family: "Fredoka", sans-serif;
       }
       .card {
         background: rgba(255, 255, 255, 0.05);
@@ -112,7 +118,7 @@
         left: -10px;
         top: 20px;
         background: #fbbf24;
-        color: #0f172a;
+        color: #e47c82;
         width: 30px;
         height: 30px;
         border-radius: 50%;
@@ -165,8 +171,8 @@
   <body>
     <div class="container">
       <div class="header">
-        <h1>Generated Recipes</h1>
-        <a class="back-link" href="index.html">← Back</a>
+        <h1 class="title">Generated Recipes</h1>
+        <a class="back-link title" href="camera.html">← back</a>
       </div>
       <div class="card">
         <div id="status">Loading recipes…</div>
@@ -179,8 +185,12 @@
         <div id="steps-section" style="display: none; margin-top: 1rem">
           <h2 id="selected-name" style="margin-top: 0.5rem"></h2>
           <ol id="steps-list" style="margin-top: 0.5rem"></ol>
-          <button id="back-to-list" class="back-link" style="margin-top: 1rem">
-            ← Back to List
+          <button
+            id="back-to-list"
+            class="back-link title"
+            style="margin-top: 1rem"
+          >
+            ← back
           </button>
         </div>
       </div>
@@ -222,7 +232,8 @@
                 const li = document.createElement("li");
                 li.style.padding = "10px 12px";
                 li.style.marginBottom = "8px";
-                li.style.border = "1px solid rgba(255,255,255,0.15)";
+                li.style.backgroundColor = "#e47c82";
+                li.style.color = "#ffffff";
                 li.style.borderRadius = "12px";
                 li.style.display = "flex";
                 li.style.alignItems = "center";
@@ -240,7 +251,9 @@
                 info.appendChild(desc);
 
                 const btn = document.createElement("button");
-                btn.textContent = "View Steps";
+                btn.textContent = "Select";
+                li.style.backgroundColor = "#e47c82";
+                li.style.color = "#ffffff";
                 btn.className = "back-link";
                 btn.style.cursor = "pointer";
                 btn.addEventListener("click", () => selectRecipe(r.name));
@@ -305,7 +318,7 @@
                 const instructionsSection = document.createElement("div");
                 instructionsSection.className = "instructions-section";
                 instructionsSection.innerHTML =
-                  "<h3>Step-by-Step Cooking Instructions:</h3>";
+                  "<h3>Step-by-Step Instructions:</h3>";
 
                 const instructionsList = document.createElement("ol");
                 instructionsList.className = "instructions-list";

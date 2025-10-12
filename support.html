@@ -20,6 +20,9 @@
         background-image: url("pic/bg2.png");
         background-repeat: repeat;
         background-attachment: fixed;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
       }
 
       .navbar {
@@ -100,13 +103,15 @@
       }
 
       main {
-        padding-top: 100px;
-        min-height: calc(100vh - 100px);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-      }
+  padding-top: 100px;
+  /* Change min-height to flex-grow */
+  /* min-height: calc(100vh - 100px); */ 
+  flex-grow: 1; /* Pushes the footer down */
+  display: flex; /* Keep the existing flex layout inside main */
+  flex-direction: column; 
+  justify-content: center;
+  align-items: center;
+}
 
       .card-container {
         display: flex;
@@ -153,12 +158,17 @@
         justify-content: center;
       }
       .footer {
-        padding: 10px;
-        background-color: white;
-        text-align: center;
-        border-top: 1px solid #eee;
-        margin-top: 40px;
-      }
+  padding: 10px;
+  background-color: white;
+  text-align: center;
+  border-top: 1px solid #eee;
+  /* FIX: Add these styles */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000; /* Recommended to ensure it sits on top */
+}
 
       .footer-logo-placeholder {
         height: 30px;

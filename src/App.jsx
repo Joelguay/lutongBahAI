@@ -10,10 +10,15 @@ function App() {
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  // NEW STATE: State to track if the camera stream should be visible
+  const [isCameraOn, setIsCameraOn] = useState(true); 
 
   const handleShowRecipes = async () => {
     setLoading(true);
     setError(null);
+    // Optional: Turn camera off when showing recipes for performance
+    // setIsCameraOn(false); 
+    
     try {
       // FIX: Use the correct API endpoint '/getRecipeByInd'
       // For now, it will use the default ingredients in the API.
@@ -40,6 +45,11 @@ function App() {
     }
   };
 
+  // NEW FUNCTION: Toggles the camera state
+  const handleToggleCamera = () => {
+    setIsCameraOn(prev => !prev);
+  };
+
   const handleSelectRecipe = (recipeName) => {
     setSelectedRecipe(recipeName);
     setView("steps");
@@ -53,6 +63,7 @@ function App() {
   const handleBackToCamera = () => {
     setView("camera");
     setRecipes([]);
+    setIsCameraOn(true); // Turn camera back on when returning
   };
 
   const renderContent = () => {
@@ -91,10 +102,21 @@ function App() {
             <h1 className="title" style={{ textAlign: "center" }}>
               Place an Ingredient
             </h1>
-            <Camera />
-            <button className="random-button" onClick={handleShowRecipes}>
-              Show Recipe
-            </button>
+            {/* PASS THE NEW STATE DOWN */}
+            <Camera isOn={isCameraOn} />
+            
+            {/* BUTTON CONTROLS AND SHOW RECIPE BUTTON */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '30px' }}>
+                <button 
+                    className="random-button camera-toggle-button" 
+                    onClick={handleToggleCamera}
+                >
+                    {isCameraOn ? 'Turn Off Camera' : 'Turn On Camera'}
+                </button>
+                <button className="random-button" onClick={handleShowRecipes}>
+                    Show Recipe
+                </button>
+            </div>
           </>
         );
     }

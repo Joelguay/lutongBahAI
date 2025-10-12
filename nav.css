@@ -7,6 +7,16 @@
 body {
   font-family: "Aileron", sans-serif;
   background-color: #f7f3e8;
+  
+  /* FIX 1: Enable Flexbox layout for the entire document */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+main, #root {
+  flex-grow: 1;
+  /* Add padding to account for the fixed navbar (80px height) */
+  padding-top: 100px; 
 }
 
 .navbar {
@@ -39,7 +49,7 @@ body {
   width: 100%;
   height: 100%;
   background-color: rgba(255, 255, 255, 0.7);
-  border-radius: 0 0 40px 40px;
+  border-radius: 0 0 20px 40px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   z-index: -1;
 }

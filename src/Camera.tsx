@@ -1,51 +1,53 @@
 import React from "react";
 
-function Camera() {
+// Define props for the Camera component
+interface CameraProps {
+  isOn: boolean;
+}
+
+// Update the Camera component to accept the isOn prop
+function Camera({ isOn }: CameraProps) {
   // The URL of the new Flask video streaming endpoint
   const videoStreamUrl = "http://localhost:5000/api/video_feed";
 
+  const videoContainerStyle = {
+    width: "640px",
+    height: "480px",
+    borderRadius: "12px",
+    background: "#000",
+    textAlign: "center" as const,
+    marginTop: "20px",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  };
+
+  const videoImageStyle = {
+    width: "100%", 
+    height: "100%", 
+    borderRadius: "12px",
+    // We only need the background property if it's OFF
+  };
+
   return (
     <div style={{ textAlign: "center", marginTop: "20px" }}>
-      {/* We use an <img> tag to display the MJPEG stream */}
-      <img
-        src={videoStreamUrl}
-        style={{
-          width: "640px", // Adjusted for a common camera resolution
-          height: "480px", // Adjusted for a common camera resolution
-          borderRadius: "12px",
-          background: "#000",
-        }}
-      />
+      <div style={videoContainerStyle}>
+        {isOn ? (
+          /* If camera is ON, show the live stream image */
+          <img
+            src={videoStreamUrl}
+            style={videoImageStyle}
+            alt="Live ingredient detection stream"
+          />
+        ) : (
+          /* If camera is OFF, show a black screen with text */
+          <div style={{...videoImageStyle, background: "#000", color: "#fff", lineHeight: "480px"}}>
+            CAMERA OFF
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-
-//     startCamera();
-
-//     return () => {
-//       if (videoRef.current?.srcObject) {
-//         (videoRef.current.srcObject as MediaStream)
-//           .getTracks()
-//           .forEach((track) => track.stop());
-//       }
-//     };
-//   }, []);
-
-//   return (
-//     <div style={{ textAlign: "center", marginTop: "20px" }}>
-//       <video
-//         ref={videoRef}
-//         autoPlay
-//         playsInline
-//         style={{
-//           width: "480px",
-//           height: "360px",
-//           borderRadius: "12px",
-//           background: "#000",
-//         }}
-//       />
-//     </div>
-//   );
-// }
 
 export default Camera;

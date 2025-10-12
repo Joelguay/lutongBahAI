@@ -16,6 +16,12 @@
   margin-left: 565px;
   margin-top: 30px;
 }
+body {
+  /* Other existing styles for background, etc. */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
 
 .title {
   color: #e47c82;
@@ -39,17 +45,41 @@
 }
 
 /* Recipe List Styles */
-.recipe-list-container h1 {
-  /* Removed: .header h1 was redundant and overridden later */
-  color: #f8fafc;
+.header {
+  display: flex;
+  align-items: center;
+  /* FIX: Use space-between to push the children to the opposite ends */
+  justify-content: space-between; 
+  margin-bottom: 2rem;
+  width: 100%;
+}
+.app-container {
+  flex-grow: 1; 
+  padding-top: 0;
+  padding-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%; /* Ensure it spans the full width of #root */
+  max-width: 1000px;
+  margin: 0 auto;
+}
+.random-button {
+  /* ... existing styles ... */
+  /* REMOVE: margin-left: 565px; */
+  margin: 30px auto 0 auto; /* Center the block element */
+  display: block; /* Make it a block element to accept auto margins */
 }
 
+
 .recipe-item {
-  background: rgba(255, 255, 255, 0.05);
+  background: white;
   border: 1px solid rgba(100, 100, 100, 0.5);
   border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); 
   padding: 1.5rem;
   margin-bottom: 1.5rem;
+  width: 100%;
 }
 
 .recipe-item h2 {
@@ -89,13 +119,16 @@
 }
 
 .back-link {
-  background: none;
+  background: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.09);
   font-size: 1rem;
   border: 1px solid rgba(251, 191, 36, 0.4);
   padding: 8px 14px;
   border-radius: 9999px;
   cursor: pointer;
   color: #fbbf24;
+  flex-shrink: 0;
+  margin-left: 20px;
 }
 
 /* MERGED: Combined the two .card definitions */
@@ -107,8 +140,8 @@
   background-color: rgba(255, 255, 255, 0.9);
   border-radius: 25px;
   box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-  width: 45%;
-  max-width: 550px;
+  width: 100%;
+  max-width: 2500px;
   min-height: 400px;
   flex-grow: 1;
 }
@@ -254,8 +287,10 @@
 }
 
 .header h1 {
-  /* Removed: This was redundant and the color was already defined. Keeping the final color only. */
+  /* No special flex properties needed, just allow it to take space */
+  font-size: 2.5em; /* Example: adjust font size if needed */
   color: #0f172a;
+  margin: 0;
 }
 
 /* Removed: This was redundant with .ingredients-list, keeping list-style-type: none just in case it was a specific override, but removing the duplicate padding. */

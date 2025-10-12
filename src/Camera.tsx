@@ -1,21 +1,19 @@
 import React from "react";
 
-
 function Camera() {
   // The URL of the new Flask video streaming endpoint
-  const videoStreamUrl = 'http://localhost:5000/api/video_feed';
+  const videoStreamUrl = "http://localhost:5000/api/video_feed";
 
   return (
-    <div style={{ textAlign: 'center', marginTop: '20px' }}>
+    <div style={{ textAlign: "center", marginTop: "20px" }}>
       {/* We use an <img> tag to display the MJPEG stream */}
       <img
         src={videoStreamUrl}
-        alt="YOLOv5 Detection Stream"
         style={{
-          width: '640px',   // Adjusted for a common camera resolution
-          height: '480px',  // Adjusted for a common camera resolution
-          borderRadius: '12px',
-          background: '#000',
+          width: "640px", // Adjusted for a common camera resolution
+          height: "480px", // Adjusted for a common camera resolution
+          borderRadius: "12px",
+          background: "#000",
         }}
       />
     </div>

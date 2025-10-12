@@ -1,16 +1,26 @@
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&display=swap");
+
 .random-button {
-  background-color: #3B3B3B;
+  background-color: #e47c82;
   color: #ffffff;
   padding: 15px 30px;
   border: none;
   border-radius: 30px;
   font-size: 18px;
+  font-family: "Fredoka", sans-serif;
   font-weight: bold;
   cursor: pointer;
-  box-shadow: 0 4px 8px 3B3B3B (0, 0, 0, 0.2);
+  /* CORRECTED: Fixed the invalid color in box-shadow */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
   margin-left: 565px;
   margin-top: 30px;
+}
+
+.title {
+  color: #e47c82;
+  font-family: "Fredoka", sans-serif;
+  font-size: 50px;
 }
 
 .random-button:hover {
@@ -19,7 +29,8 @@
 }
 
 /* General Styles */
-.loading-text, .error-text {
+.loading-text,
+.error-text {
   text-align: center;
   margin-top: 4rem;
   font-size: 1.2rem;
@@ -28,7 +39,8 @@
 }
 
 /* Recipe List Styles */
-.recipe-list-container h1, .header h1 {
+.recipe-list-container h1 {
+  /* Removed: .header h1 was redundant and overridden later */
   color: #f8fafc;
 }
 
@@ -86,18 +98,25 @@
   color: #fbbf24;
 }
 
+/* MERGED: Combined the two .card definitions */
 .card {
-  background-color: none; 
-  box-shadow: none;      
-  border-radius: none;
+  /* From Definition 1 (Kept for content card styling) */
   padding: 2rem;
   color: #1f2937;
+  /* From Definition 2 (Kept for layout and visual styling) */
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 25px;
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  width: 45%;
+  max-width: 550px;
+  min-height: 400px;
+  flex-grow: 1;
 }
 
 .card > p {
   font-size: 1.25rem; /* ~20px. Adjust this value as you like */
-  font-weight: 500;   /* Optional: makes the text a bit bolder */
-  color: #4b5563;    /* A slightly muted text color */
+  font-weight: 500; /* Optional: makes the text a bit bolder */
+  color: #4b5563; /* A slightly muted text color */
   margin-top: 0;
   margin-bottom: 2rem; /* Add some space below the servings text */
 }
@@ -113,7 +132,8 @@
 
 /* Structured Recipe Display Styles */
 .recipe-details {
-  color: #e5e7eb;
+  /* MERGED: Kept the darker color from the later definition */
+  color: #0f172a;
   line-height: 1.6;
 }
 
@@ -126,11 +146,15 @@
   font-size: 1.1rem;
 }
 
-.ingredients-section, .instructions-section, .notes-section {
+.ingredients-section,
+.instructions-section,
+.notes-section {
   margin-bottom: 2rem;
 }
 
-.ingredients-section h3, .instructions-section h3, .notes-section h3 {
+.ingredients-section h3,
+.instructions-section h3,
+.notes-section h3 {
   color: #f8fafc;
   margin-bottom: 1rem;
   font-size: 1.3rem;
@@ -229,25 +253,22 @@
   font-style: italic;
 }
 
-.recipe-details{
-  color:#0f172a;
-}
-
 .header h1 {
-  color:#0f172a;
+  /* Removed: This was redundant and the color was already defined. Keeping the final color only. */
+  color: #0f172a;
 }
 
+/* Removed: This was redundant with .ingredients-list, keeping list-style-type: none just in case it was a specific override, but removing the duplicate padding. */
 .ingredient-list {
-  list-style-type: none; /* This removes the bullet points */
-  padding-left: 0;       /* This removes the default list indentation */
+  list-style-type: none;
 }
 
 .recipe-section-box {
   border: 1px solid #e5e7eb; /* A light gray border */
-  border-radius: 8px;           /* Rounded corners for the box */
-  padding: 1rem 1.5rem;         /* Space inside the box */
-  margin-bottom: 1.5rem;        /* Space between the boxes */
-  background-color: #ffffff;    /* A white background for the box */
+  border-radius: 8px; /* Rounded corners for the box */
+  padding: 1rem 1.5rem; /* Space inside the box */
+  margin-bottom: 1.5rem; /* Space between the boxes */
+  background-color: #ffffff; /* A white background for the box */
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); /* A subtle shadow */
 }
 
@@ -255,4 +276,138 @@
 .recipe-section-box h3 {
   font-size: 1.25rem;
   margin-top: 0;
+}
+
+.navbar {
+  background-color: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+}
+
+.navbar-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 10px 40px;
+  height: 80px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.navbar-background-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 0 0 40px 40px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  z-index: -1;
+}
+
+.logo-placeholder img {
+  height: 70px;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 40px;
+  text-transform: lowercase;
+  align-items: center;
+  margin-right: 20px;
+}
+
+.nav-links li {
+  padding: 0;
+  font-size: 1.2em;
+  font-weight: 600;
+  color: #555;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #555;
+  padding-bottom: 5px;
+  transition: color 0.3s;
+  font-family: "Fredoka", sans-serif;
+}
+
+.nav-links .active {
+  color: #e47c82;
+  border-bottom: 2px solid #e47c82;
+}
+
+.nav-links a:hover {
+  color: #e47c82;
+  border-bottom: 2px solid #e47c82;
+}
+
+.nav-links li:last-child a:hover {
+  border-bottom: none;
+}
+
+.footer {
+  padding: 10px;
+  background-color: white;
+  text-align: center;
+  border-top: 1px solid #eee;
+  margin-top: 40px;
+}
+
+.footer-logo-placeholder {
+  height: 30px;
+  margin-bottom: 5px;
+  font-size: 1.3em;
+  color: #666;
+  font-family: "Aileron", sans-serif;
+}
+
+.copyright {
+  font-size: 0.9em;
+  color: #666;
+  font-family: "Aileron", sans-serif;
+}
+
+main {
+  padding-top: 100px;
+  min-height: calc(100vh - 100px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.card-container {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  flex-wrap: wrap;
+}
+
+.image-card {
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.image-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 25px;
 }

@@ -6,12 +6,14 @@
     <title>Recipe</title>
     <style>
       body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-          Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        font-family: "Aileron", sans-serif;
+        background-color: #f7f3e8;
+        background-image: url("pic/bg2.png");
+        background-repeat: repeat;
+        background-attachment: fixed;
         margin: 0;
         padding: 2rem;
-        background: #0f172a;
-        color: #e5e7eb;
+        color: #e47c82;
       }
       .container {
         max-width: 900px;
@@ -24,9 +26,9 @@
         margin-bottom: 2rem;
       }
       .back-link {
-        color: #fbbf24;
+        color: #e47c82;
         text-decoration: none;
-        border: 1px solid rgba(251, 191, 36, 0.4);
+        border: 1px solid #e47c82;
         padding: 8px 14px;
         border-radius: 9999px;
       }
@@ -36,7 +38,7 @@
         border-radius: 16px;
         padding: 1.5rem;
       }
-      
+
       /* Structured Recipe Display Styles */
       .recipe-details {
         color: #e5e7eb;
@@ -52,11 +54,15 @@
         font-size: 1.1rem;
       }
 
-      .ingredients-section, .instructions-section, .notes-section {
+      .ingredients-section,
+      .instructions-section,
+      .notes-section {
         margin-bottom: 2rem;
       }
 
-      .ingredients-section h3, .instructions-section h3, .notes-section h3 {
+      .ingredients-section h3,
+      .instructions-section h3,
+      .notes-section h3 {
         color: #f8fafc;
         margin-bottom: 1rem;
         font-size: 1.3rem;
@@ -134,7 +140,7 @@
 
       .step-detail {
         background: rgba(255, 255, 255, 0.03);
-        border-left: 3px solid rgba(251, 191, 36, 0.5);
+        border-left: 3px solid #e47c82;
         padding: 8px 12px;
         margin-bottom: 6px;
         border-radius: 0 6px 6px 0;
@@ -164,189 +170,206 @@
       </div>
       <div class="card">
         <div id="status">Loading recipes…</div>
-        <div id="list-section" style="margin-top: 1rem;">
-          <ul id="recipe-list" style="list-style: none; padding-left: 0; margin: 0;"></ul>
+        <div id="list-section" style="margin-top: 1rem">
+          <ul
+            id="recipe-list"
+            style="list-style: none; padding-left: 0; margin: 0"
+          ></ul>
         </div>
-        <div id="steps-section" style="display:none; margin-top: 1rem;">
-          <h2 id="selected-name" style="margin-top: 0.5rem;"></h2>
-          <ol id="steps-list" style="margin-top: 0.5rem;"></ol>
-          <button id="back-to-list" class="back-link" style="margin-top: 1rem;">← Back to List</button>
+        <div id="steps-section" style="display: none; margin-top: 1rem">
+          <h2 id="selected-name" style="margin-top: 0.5rem"></h2>
+          <ol id="steps-list" style="margin-top: 0.5rem"></ol>
+          <button id="back-to-list" class="back-link" style="margin-top: 1rem">
+            ← Back to List
+          </button>
         </div>
       </div>
       <script>
-        (function() {
-          const apiBase = 'http://localhost:5000';
+        (function () {
+          const apiBase = "http://localhost:5000";
 
-          const statusEl = document.getElementById('status');
-          const listSection = document.getElementById('list-section');
-          const listEl = document.getElementById('recipe-list');
-          const stepsSection = document.getElementById('steps-section');
-          const stepsList = document.getElementById('steps-list');
-          const selectedNameEl = document.getElementById('selected-name');
-          const backBtn = document.getElementById('back-to-list');
+          const statusEl = document.getElementById("status");
+          const listSection = document.getElementById("list-section");
+          const listEl = document.getElementById("recipe-list");
+          const stepsSection = document.getElementById("steps-section");
+          const stepsList = document.getElementById("steps-list");
+          const selectedNameEl = document.getElementById("selected-name");
+          const backBtn = document.getElementById("back-to-list");
 
           function setStatus(text) {
-            if (!text) { statusEl.style.display = 'none'; return; }
-            statusEl.style.display = 'block';
+            if (!text) {
+              statusEl.style.display = "none";
+              return;
+            }
+            statusEl.style.display = "block";
             statusEl.textContent = text;
           }
 
           async function loadRecipes() {
-            setStatus('Loading recipes…');
-            stepsSection.style.display = 'none';
-            listSection.style.display = 'block';
-            listEl.innerHTML = '';
+            setStatus("Loading recipes…");
+            stepsSection.style.display = "none";
+            listSection.style.display = "block";
+            listEl.innerHTML = "";
             try {
               const res = await fetch(`${apiBase}/getRecipeByInd`);
               if (!res.ok) throw new Error(`HTTP ${res.status}`);
               const data = await res.json();
-              const recipes = Array.isArray(data.recipes) ? data.recipes.slice(0, 5) : [];
-              if (recipes.length === 0) throw new Error('No recipes found.');
-              recipes.forEach(r => {
-                const li = document.createElement('li');
-                li.style.padding = '10px 12px';
-                li.style.marginBottom = '8px';
-                li.style.border = '1px solid rgba(255,255,255,0.15)';
-                li.style.borderRadius = '12px';
-                li.style.display = 'flex';
-                li.style.alignItems = 'center';
-                li.style.justifyContent = 'space-between';
+              const recipes = Array.isArray(data.recipes)
+                ? data.recipes.slice(0, 5)
+                : [];
+              if (recipes.length === 0) throw new Error("No recipes found.");
+              recipes.forEach((r) => {
+                const li = document.createElement("li");
+                li.style.padding = "10px 12px";
+                li.style.marginBottom = "8px";
+                li.style.border = "1px solid rgba(255,255,255,0.15)";
+                li.style.borderRadius = "12px";
+                li.style.display = "flex";
+                li.style.alignItems = "center";
+                li.style.justifyContent = "space-between";
 
-                const info = document.createElement('div');
-                const name = document.createElement('div');
-                name.textContent = r.name || 'Untitled Dish';
-                name.style.fontWeight = '600';
-                const desc = document.createElement('div');
-                desc.textContent = r.description || '';
-                desc.style.opacity = '0.8';
-                desc.style.fontSize = '0.95rem';
+                const info = document.createElement("div");
+                const name = document.createElement("div");
+                name.textContent = r.name || "Untitled Dish";
+                name.style.fontWeight = "600";
+                const desc = document.createElement("div");
+                desc.textContent = r.description || "";
+                desc.style.opacity = "0.8";
+                desc.style.fontSize = "0.95rem";
                 info.appendChild(name);
                 info.appendChild(desc);
 
-                const btn = document.createElement('button');
-                btn.textContent = 'View Steps';
-                btn.className = 'back-link';
-                btn.style.cursor = 'pointer';
-                btn.addEventListener('click', () => selectRecipe(r.name));
+                const btn = document.createElement("button");
+                btn.textContent = "View Steps";
+                btn.className = "back-link";
+                btn.style.cursor = "pointer";
+                btn.addEventListener("click", () => selectRecipe(r.name));
 
                 li.appendChild(info);
                 li.appendChild(btn);
                 listEl.appendChild(li);
               });
-              setStatus('');
+              setStatus("");
             } catch (err) {
               console.error(err);
-              setStatus('Failed to load recipes. Ensure the Python API server is running on http://localhost:5173.');
+              setStatus(
+                "Failed to load recipes. Ensure the Python API server is running on http://localhost:5173."
+              );
             }
           }
 
           async function selectRecipe(recipeName) {
             if (!recipeName) return;
-            setStatus('Loading steps…');
+            setStatus("Loading steps…");
             try {
-              const res = await fetch(`${apiBase}/getRecipeByDish?recipe_val=${encodeURIComponent(recipeName)}`);
+              const res = await fetch(
+                `${apiBase}/getRecipeByDish?recipe_val=${encodeURIComponent(
+                  recipeName
+                )}`
+              );
               if (!res.ok) throw new Error(`HTTP ${res.status}`);
               const data = await res.json();
-              
+
               // Clear previous content
-              stepsList.innerHTML = '';
-              
+              stepsList.innerHTML = "";
+
               // Display servings if available
               if (data.servings) {
-                const servingsDiv = document.createElement('div');
-                servingsDiv.className = 'servings-info';
+                const servingsDiv = document.createElement("div");
+                servingsDiv.className = "servings-info";
                 servingsDiv.innerHTML = `<strong>Servings:</strong> ${data.servings}`;
                 stepsList.appendChild(servingsDiv);
               }
-              
+
               // Display ingredients
               if (data.ingredients && data.ingredients.length > 0) {
-                const ingredientsSection = document.createElement('div');
-                ingredientsSection.className = 'ingredients-section';
-                ingredientsSection.innerHTML = '<h3>Ingredients:</h3>';
-                
-                const ingredientsList = document.createElement('ul');
-                ingredientsList.className = 'ingredients-list';
-                data.ingredients.forEach(ingredient => {
-                  const li = document.createElement('li');
-                  li.className = 'ingredient-item';
+                const ingredientsSection = document.createElement("div");
+                ingredientsSection.className = "ingredients-section";
+                ingredientsSection.innerHTML = "<h3>Ingredients:</h3>";
+
+                const ingredientsList = document.createElement("ul");
+                ingredientsList.className = "ingredients-list";
+                data.ingredients.forEach((ingredient) => {
+                  const li = document.createElement("li");
+                  li.className = "ingredient-item";
                   li.textContent = ingredient;
                   ingredientsList.appendChild(li);
                 });
-                
+
                 ingredientsSection.appendChild(ingredientsList);
                 stepsList.appendChild(ingredientsSection);
               }
-              
+
               // Display instructions
               if (data.instructions && data.instructions.length > 0) {
-                const instructionsSection = document.createElement('div');
-                instructionsSection.className = 'instructions-section';
-                instructionsSection.innerHTML = '<h3>Step-by-Step Cooking Instructions:</h3>';
-                
-                const instructionsList = document.createElement('ol');
-                instructionsList.className = 'instructions-list';
+                const instructionsSection = document.createElement("div");
+                instructionsSection.className = "instructions-section";
+                instructionsSection.innerHTML =
+                  "<h3>Step-by-Step Cooking Instructions:</h3>";
+
+                const instructionsList = document.createElement("ol");
+                instructionsList.className = "instructions-list";
                 data.instructions.forEach((step, index) => {
-                  const li = document.createElement('li');
-                  li.className = 'instruction-step';
-                  
-                  const stepTitle = document.createElement('div');
-                  stepTitle.className = 'step-title';
+                  const li = document.createElement("li");
+                  li.className = "instruction-step";
+
+                  const stepTitle = document.createElement("div");
+                  stepTitle.className = "step-title";
                   stepTitle.textContent = step.title;
                   li.appendChild(stepTitle);
-                  
+
                   if (step.details && step.details.length > 0) {
-                    const detailsList = document.createElement('ul');
-                    detailsList.className = 'step-details';
-                    step.details.forEach(detail => {
-                      const detailLi = document.createElement('li');
-                      detailLi.className = 'step-detail';
+                    const detailsList = document.createElement("ul");
+                    detailsList.className = "step-details";
+                    step.details.forEach((detail) => {
+                      const detailLi = document.createElement("li");
+                      detailLi.className = "step-detail";
                       detailLi.textContent = detail;
                       detailsList.appendChild(detailLi);
                     });
                     li.appendChild(detailsList);
                   }
-                  
+
                   instructionsList.appendChild(li);
                 });
-                
+
                 instructionsSection.appendChild(instructionsList);
                 stepsList.appendChild(instructionsSection);
               }
-              
+
               // Display notes if available
               if (data.notes && data.notes.length > 0) {
-                const notesSection = document.createElement('div');
-                notesSection.className = 'notes-section';
-                notesSection.innerHTML = '<h3>Tips & Notes:</h3>';
-                
-                const notesList = document.createElement('ul');
-                notesList.className = 'notes-list';
-                data.notes.forEach(note => {
-                  const li = document.createElement('li');
-                  li.className = 'note-item';
+                const notesSection = document.createElement("div");
+                notesSection.className = "notes-section";
+                notesSection.innerHTML = "<h3>Tips & Notes:</h3>";
+
+                const notesList = document.createElement("ul");
+                notesList.className = "notes-list";
+                data.notes.forEach((note) => {
+                  const li = document.createElement("li");
+                  li.className = "note-item";
                   li.textContent = note;
                   notesList.appendChild(li);
                 });
-                
+
                 notesSection.appendChild(notesList);
                 stepsList.appendChild(notesSection);
               }
 
               selectedNameEl.textContent = data.name || recipeName;
-              listSection.style.display = 'none';
-              stepsSection.style.display = 'block';
-              setStatus('');
+              listSection.style.display = "none";
+              stepsSection.style.display = "block";
+              setStatus("");
             } catch (err) {
               console.error(err);
-              setStatus('Failed to load recipe steps.');
+              setStatus("Failed to load recipe steps.");
             }
           }
 
-          backBtn.addEventListener('click', () => {
-            stepsSection.style.display = 'none';
-            listSection.style.display = 'block';
-            setStatus('');
+          backBtn.addEventListener("click", () => {
+            stepsSection.style.display = "none";
+            listSection.style.display = "block";
+            setStatus("");
           });
 
           // Kick off
@@ -356,5 +379,3 @@
     </div>
   </body>
 </html>
-
-

@@ -11,7 +11,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   // NEW STATE: State to track if the camera stream should be visible
-  const [isCameraOn, setIsCameraOn] = useState(true); 
+  const [isCameraOn, setIsCameraOn] = useState(false); 
 
   const handleShowRecipes = async () => {
     setLoading(true);

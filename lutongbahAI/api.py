@@ -169,7 +169,7 @@ def generate_recipes_endpoint():
         logger.info(f"Using LIVE detected ingredients: {ingredients}")
     else:
         # Fallback to query parameter or default if no live ingredients are found
-        ind_val = request.args.get('Ind_val', 'fish,garlic,potatoes')
+        ind_val = request.args.get('Ind_val', 'chicken,garlic,potatoes')
         ingredients = [i.strip() for i in ind_val.split(',') if i.strip()]
         logger.info(f"Using fallback/default ingredients: {ingredients}")
 

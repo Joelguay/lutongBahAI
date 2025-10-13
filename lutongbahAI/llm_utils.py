@@ -83,12 +83,32 @@ def generate_recipes(ingredients, use_cache=False, model="gpt-4.1", detection_js
 
     return result
 
-# MERGE NOTE: This function was identical in both versions, so no merge was needed.
+# Function to automatically detect the primary protein from the ingredient list
+def _determine_primary_protein(ingredients):
+    proteins = ["chicken", "pork", "beef", "fish", "shrimp", "squid", "tofu"]
+    for ingredient in ingredients:
+        for protein in proteins:
+            if protein in ingredient.lower():
+                return protein.capitalize()
+    return None
+
 def get_recipe_steps(recipe_name, required_ingredients=None, use_cache=False, model="gpt-4.1"):
     """Generate step-by-step instructions for a recipe."""
     cache_key = f"steps_{recipe_name.lower().strip()}_{','.join(sorted(required_ingredients or []))}"
     if use_cache and cache_key in steps_cache:
         return steps_cache[cache_key]
+    
+    # NEW: Determine the required protein from the list of ingredients
+    primary_protein = _determine_primary_protein(required_ingredients or [])
+    
+    # NEW: Create a strong instruction based on the detected protein
+    protein_instruction = ""
+    if primary_protein:
+        protein_instruction = f"CRITICAL: The main protein in the recipe MUST be {primary_protein} (e.g., use Chicken shanks, not Beef shanks). Do not substitute this primary protein."
+    
+    # If no protein is detected, still make the instruction clear
+    else:
+         protein_instruction = "CRITICAL: Base the recipe on the main protein found in the Required Ingredients list."
 
     prompt = f"""
 You are an expert Filipino home cook.
@@ -102,33 +122,35 @@ Generate a recipe in the following **exact format**:
 
 Dish Name (Filipino / English Description)
 Servings: 1-2
+Allergens: (List all common allergens like Shellfish, Peanuts, Gluten, Dairy, Eggs, or None)
 
-Ingredients:  
- List all ingredients with quantities.  
- Include optional substitutions using "👉 Sub:"  
- Include tips if relevant.
- Don't add texts like "-"  
+Ingredients: 
+List all ingredients with quantities. 
+{protein_instruction} 
+Include optional substitutions using "👉 Sub:" 
+Include tips if relevant.
+Don't add texts like "-" 
 
 Step-by-Step Cooking Instructions:
 
-1. Step Title:  
-    Detailed instruction(s).  
-    Include cooking times, methods, and realistic household tips.
+1. Step Title: 
+  Detailed instruction(s). 
+  Include cooking times, methods, and realistic household tips.
 
-2. Step Title:  
-    ...continue for all steps until the dish is ready.
+2. Step Title: 
+  ...continue for all steps until the dish is ready.
 
-🍲 Tips & Notes:  
- Include optional tips for flavor, substitutions, serving suggestions, and dietary notes, add allergens as the first note. 
- Don't add texts like "-"  
+🍲 Tips & Notes: 
+Include optional tips for flavor, substitutions, serving suggestions, and dietary notes.
+Don't add texts like "-" 
 
 ---
 
 CRITICAL:
- Include all required ingredients.
- Use clear and concise language.
- Maintain authentic Filipino household cooking methods.
- Keep the recipe reader-friendly.
+Include all required ingredients.
+Use clear and concise language.
+Maintain authentic Filipino household cooking methods.
+Keep the recipe reader-friendly.
 """
 
     result = run_openai(prompt, model=model, max_tokens=2000)
@@ -179,5 +201,3 @@ def get_cache_stats():
         "steps_cache_ttl": steps_cache.ttl,
         "note": "Caching is disabled by default - all searches return fresh results"
     }
-
-    

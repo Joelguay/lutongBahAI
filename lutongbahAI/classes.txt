@@ -8,7 +8,7 @@ Eggplant
 Fish
 Flour
 Garlic
-GBellP
+Garlic
 Lime
 LimeComG
 LimeComY

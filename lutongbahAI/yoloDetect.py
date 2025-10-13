@@ -5,6 +5,7 @@ import json
 import argparse
 import warnings
 from datetime import datetime
+import numpy as np
 
 # Suppress noisy warnings from PyTorch/YOLOv5 with newer Torch versions
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -14,6 +15,15 @@ warnings.filterwarnings(
     message=r"pkg_resources is deprecated as an API.*",
 )
 
+
+# Helper: load class names from classes.txt and map to indices
+def load_class_names(txt_path: str):
+    try:
+        with open(txt_path, "r", encoding="utf-8") as f:
+            names = [line.strip() for line in f if line.strip()]
+        return {i: name for i, name in enumerate(names)}
+    except Exception:
+        return {}
 
 # Load YOLOv5 model
 def load_model(model_path: str, device: str | None = None):
@@ -29,23 +39,54 @@ def load_model(model_path: str, device: str | None = None):
         source="local",
         device=device or ("cuda" if torch.cuda.is_available() else "cpu"),
     )
+    # Warm-up to reduce first inference latency
+    try:
+        with torch.no_grad():
+            dummy = np.zeros((320, 320, 3), dtype=np.uint8)
+            _ = model(dummy)
+    except Exception:
+        pass
+    # Override class names from classes.txt if available
+    try:
+        classes_path = os.path.join(os.path.dirname(__file__), "classes.txt")
+        custom_names = load_class_names(classes_path)
+        if custom_names:
+            model.names = custom_names
+    except Exception:
+        pass
     return model
 
 
 # Open webcam or video/image file
-def open_source(source: str | int):
+def open_source(source: str | int, backend: str | None = None, width: int | None = 640, height: int | None = 480):
     # Accept formats: "usb0", "0", 0, video path
     cap = None
+    api = None
+    b = (backend or "").strip().lower()
+    if b == "dshow":
+        api = cv2.CAP_DSHOW
+    elif b == "msmf":
+        api = cv2.CAP_MSMF
+
     if isinstance(source, int) or (isinstance(source, str) and source.isdigit()):
-        cap = cv2.VideoCapture(int(source))
+        idx = int(source)
+        cap = cv2.VideoCapture(idx, api) if api is not None else cv2.VideoCapture(idx)
     elif isinstance(source, str) and source.lower().startswith("usb"):
         idx = int(source[3:]) if len(source) > 3 else 0
-        cap = cv2.VideoCapture(idx)
+        cap = cv2.VideoCapture(idx, api) if api is not None else cv2.VideoCapture(idx)
     else:
         cap = cv2.VideoCapture(source)
 
     if not cap.isOpened():
         raise ValueError(f"Could not open source: {source}")
+    try:
+        if width:
+            cap.set(cv2.CAP_PROP_FRAME_WIDTH, int(width))
+        if height:
+            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, int(height))
+        cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+    except Exception:
+        pass
     return cap
 
 
@@ -65,11 +106,34 @@ def GetCaptureObjectAPI(model, image, save_dir: str = "captured"):
     results = model(image)
     names = model.names
 
+    # Use model.conf if available; fallback to 0.5
+    try:
+        threshold = float(getattr(model, "conf", 0.5))
+    except Exception:
+        threshold = 0.5
+
+    # Filter detections below threshold BEFORE counting and rendering
+    try:
+        det = results.xyxy[0]
+        if hasattr(det, 'cpu'):
+            mask = det[:, 4] >= threshold
+            results.xyxy[0] = det[mask]
+            filtered = results.xyxy[0].cpu().numpy()
+        else:
+            import numpy as _np
+            mask = det[:, 4] >= threshold
+            results.xyxy[0] = det[mask]
+            filtered = results.xyxy[0]
+    except Exception:
+        filtered = results.xyxy[0].cpu().numpy()
+
     detected = set()
-    preds = results.xyxy[0].cpu().numpy()
-    for *_, conf, cls in preds:
-        if conf > 0.5:
-            detected.add(names[int(cls)])
+    for *_, conf, cls in filtered:
+        try:
+            if float(conf) >= threshold:
+                detected.add(names[int(cls)])
+        except Exception:
+            continue
 
     json_data = {"Detected Objects": list(detected)}
 
@@ -93,6 +157,21 @@ def detect_and_display(
             break
 
         results = model(frame)
+        # Apply threshold filtering before rendering
+        try:
+            thr = float(getattr(model, "conf", 0.5))
+        except Exception:
+            thr = 0.5
+        try:
+            det = results.xyxy[0]
+            if hasattr(det, 'cpu'):
+                mask = det[:, 4] >= thr
+                results.xyxy[0] = det[mask]
+            else:
+                mask = det[:, 4] >= thr
+                results.xyxy[0] = det[mask]
+        except Exception:
+            pass
         # Render returns a list of annotated images (BGR)
         rendered_list = results.render()
         annotated_frame = rendered_list[0] if rendered_list else frame
@@ -129,15 +208,43 @@ def main():
         default=0.5,
         help="Confidence threshold for display and capture filtering",
     )
+    parser.add_argument(
+        "--backend",
+        choices=["dshow", "msmf", "default"],
+        default="dshow",
+        help="Camera backend to use on Windows",
+    )
+    parser.add_argument(
+        "--width",
+        type=int,
+        default=640,
+        help="Capture width",
+    )
+    parser.add_argument(
+        "--height",
+        type=int,
+        default=480,
+        help="Capture height",
+    )
     args = parser.parse_args()
 
     model = load_model(args.weights)
 
     # Set confidence for Ultralytics autoshape models if available
     if hasattr(model, "conf"):
-        model.conf = float(args.conf)
+        try:
+            model.conf = float(args.conf)
+        except Exception:
+            pass
 
-    cap = open_source(args.source)
+    cap = open_source(args.source, backend=(None if args.backend == "default" else args.backend), width=args.width, height=args.height)
+    try:
+        # Smaller frame helps faster display
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+    except Exception:
+        pass
     detect_and_display(model, cap)
 
 

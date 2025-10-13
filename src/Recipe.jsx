@@ -157,7 +157,7 @@ function Recipe({ recipeName, onBack }) {
         {/* Servings and Allergens info box */}
         <div className="servings-allergens-info">
             <p><strong>Servings:</strong> {structuredRecipe.servings || 'N/A'}</p>
-            <p className="allergens-text"><strong>⚠️ Allergens:</strong> {structuredRecipe.allergens || 'None specified'}</p>
+            <p className="allergens-text"><strong>Allergens:</strong> {structuredRecipe.allergens || 'None specified'}</p>
         </div>
         
 

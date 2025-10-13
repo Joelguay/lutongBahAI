@@ -169,7 +169,7 @@ def generate_recipes_endpoint():
         logger.info(f"Using LIVE detected ingredients: {ingredients}")
     else:
         # Fallback to query parameter or default if no live ingredients are found
-        ind_val = request.args.get('Ind_val', 'chicken,garlic,potatoes')
+        ind_val = request.args.get('Ind_val', 'eggplant,garlic,egg')
         ingredients = [i.strip() for i in ind_val.split(',') if i.strip()]
         logger.info(f"Using fallback/default ingredients: {ingredients}")
 
@@ -208,6 +208,8 @@ def generate_recipes_endpoint():
         logger.error(f"Error in generate_recipes_endpoint: {str(e)}")
         return jsonify({'error': 'Failed to generate recipes from LLM'}), 500
 
+# In api.py
+
 @app.route('/api/getRecipeByDish', methods=['GET'])
 @monitor_performance
 def get_recipe_steps_endpoint():
@@ -215,9 +217,25 @@ def get_recipe_steps_endpoint():
     recipe_name = request.args.get('recipe_val', '')
     if not recipe_name:
         return jsonify({'error': 'A recipe name is required.'}), 400
-    
+
+    # --- START: FIX ---
+    # This logic checks for live camera ingredients first, then uses
+    # your default list if the camera has detected nothing.
+    ingredients_to_require = []
+    if latest_detected_ingredients:
+        ingredients_to_require = list(latest_detected_ingredients)
+        logger.info(f"Using LIVE detected ingredients for steps: {ingredients_to_require}")
+    else:
+        # Fallback for testing without a camera
+        default_ingredients = "eggplant,garlic,egg"
+        ingredients_to_require = [i.strip() for i in default_ingredients.split(',') if i.strip()]
+        logger.info(f"Using FALLBACK ingredients for steps: {ingredients_to_require}")
+    # --- END: FIX ---
+
     try:
-        steps = get_recipe_steps(recipe_name, required_ingredients=[], use_cache=False, model="gpt-4.1")
+        # Pass the correct list of ingredients to the LLM utility
+        steps = get_recipe_steps(recipe_name, required_ingredients=ingredients_to_require, use_cache=False, model="gpt-4.1")
+        
         if isinstance(steps, bytes):
             steps = steps.decode('utf-8', errors='replace')
         return jsonify({'steps': steps})

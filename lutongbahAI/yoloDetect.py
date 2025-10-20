@@ -1,3 +1,4 @@
+from asyncio.log import logger
 import os
 import cv2
 import torch
@@ -16,46 +17,35 @@ warnings.filterwarnings(
 )
 
 
-# Helper: load class names from classes.txt and map to indices
-def load_class_names(txt_path: str):
-    try:
-        with open(txt_path, "r", encoding="utf-8") as f:
-            names = [line.strip() for line in f if line.strip()]
-        return {i: name for i, name in enumerate(names)}
-    except Exception:
-        return {}
+# # Load YOLOv5 model
+# def load_model(model_path: str, device: str | None = None):
+#     if not os.path.exists(model_path):
+#         raise FileNotFoundError(f"Model path '{model_path}' does not exist.")
+#     # Use torch.hub to load YOLOv5 model
+#     # Resolve local yolov5 directory relative to this file
+#     repo_path = os.path.join(os.path.dirname(__file__), "yolov5")
+#     model = torch.hub.load(
+#         repo_path,
+#         "custom",
+#         path=model_path,
+#         source="local",
+#         device=device or ("cuda" if torch.cuda.is_available() else "cpu"),
+#     )
+#     return model
 
-# Load YOLOv5 model
-def load_model(model_path: str, device: str | None = None):
-    if not os.path.exists(model_path):
-        raise FileNotFoundError(f"Model path '{model_path}' does not exist.")
-    # Use torch.hub to load YOLOv5 model
-    # Resolve local yolov5 directory relative to this file
-    repo_path = os.path.join(os.path.dirname(__file__), "yolov5")
-    model = torch.hub.load(
-        repo_path,
-        "custom",
-        path=model_path,
-        source="local",
-        device=device or ("cuda" if torch.cuda.is_available() else "cpu"),
-    )
-    # Warm-up to reduce first inference latency
-    try:
-        with torch.no_grad():
-            dummy = np.zeros((320, 320, 3), dtype=np.uint8)
-            _ = model(dummy)
-    except Exception:
-        pass
-    # Override class names from classes.txt if available
-    try:
-        classes_path = os.path.join(os.path.dirname(__file__), "classes.txt")
-        custom_names = load_class_names(classes_path)
-        if custom_names:
-            model.names = custom_names
-    except Exception:
-        pass
-    return model
-
+# --- YOLO Model Loading ---
+try:
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    
+    # Load Ultralytics YOLO model (since the weights contain ultralytics.nn.tasks.DetectionModel)
+    from ultralytics import YOLO
+    yolo_model = YOLO('./train/weights/best.pt')
+    yolo_model.to(device)
+    logger.info(f"Ultralytics YOLO model loaded successfully on device: {device}.")
+        
+except Exception as e:
+    logger.error(f"Error loading YOLO model: {e}")
+    yolo_model = None
 
 # Open webcam or video/image file
 def open_source(source: str | int, backend: str | None = None, width: int | None = 640, height: int | None = 480):
@@ -91,7 +81,7 @@ def open_source(source: str | int, backend: str | None = None, width: int | None
 
 
 # Save image and run detection on it, return detected object names and save as .txt
-def GetCaptureObjectAPI(model, image, save_dir: str = "captured"):
+def GetCaptureObjectAPI(model, image, save_dir: str = "captured", conf_threshold: float = 0.7):
     os.makedirs(save_dir, exist_ok=True)
 
     # Use timestamp for unique naming
@@ -102,9 +92,12 @@ def GetCaptureObjectAPI(model, image, save_dir: str = "captured"):
     # Save the image
     cv2.imwrite(image_path, image)
 
-    # Run detection
-    results = model(image)
-    names = model.names
+    # Run detection. Ultralytics model(...) may return a Results object or a list of Results.
+    raw_results = model(image)
+    # Normalize to a single Results-like object
+    results = raw_results[0] if isinstance(raw_results, (list, tuple)) and raw_results else raw_results
+    names = getattr(model, 'names', {})
+
 
     # Use model.conf if available; fallback to 0.5
     try:
@@ -128,12 +121,48 @@ def GetCaptureObjectAPI(model, image, save_dir: str = "captured"):
         filtered = results.xyxy[0].cpu().numpy()
 
     detected = set()
-    for *_, conf, cls in filtered:
+    try:
+        # Load trained classes (whitelist) if available. Use lowercase for robust matching.
+        classes_path = os.path.join(os.path.dirname(__file__), 'classes.txt')
+        trained_classes = set()
         try:
-            if float(conf) >= threshold:
-                detected.add(names[int(cls)])
+            with open(classes_path, 'r', encoding='utf-8') as cf:
+                trained_classes = {ln.strip().lower() for ln in cf if ln.strip()}
         except Exception:
-            continue
+            trained_classes = set()
+
+        # Use a stricter confidence for classes we actually trained on
+        TRAINED_CLASS_CONF = 0.9
+
+        # Prefer structured access (xyxy) when available
+        preds = getattr(results, 'xyxy', None)
+        if preds is None:
+            # Some versions expose .boxes with numpy conversion
+            preds = getattr(results, 'boxes', None)
+            if preds is not None and hasattr(preds, 'xyxy'):
+                preds = preds.xyxy
+
+        # preds expected to be indexable like preds[0]
+        if preds is not None:
+            arr = preds[0].cpu().numpy() if hasattr(preds[0], 'cpu') else preds[0]
+            for *_, conf, cls in arr:
+                try:
+                    cls = int(cls)
+                    label = names.get(cls, str(cls)).strip()
+                    label_l = label.lower()
+                except Exception:
+                    continue
+
+                # If detection label is in trained-classes, require TRAINED_CLASS_CONF; otherwise ignore
+                if label_l in trained_classes:
+                    if float(conf) >= TRAINED_CLASS_CONF:
+                        detected.add(label)
+                else:
+                    # skip detections for classes we didn't train on
+                    continue
+    except Exception:
+        # If anything goes wrong, fall back to empty detection set
+        detected = set()
 
     json_data = {"Detected Objects": list(detected)}
 
@@ -148,7 +177,7 @@ def GetCaptureObjectAPI(model, image, save_dir: str = "captured"):
 
 # Main detection loop with 'P' to capture
 def detect_and_display(
-    model, cap, window_title: str = "YOLOv5 Detection - Press 'P' to capture"
+    model, cap, window_title: str = "YOLOv5 Detection - Press 'P' to capture", conf_threshold: float = 0.7
 ):
     while True:
         ret, frame = cap.read()
@@ -156,25 +185,21 @@ def detect_and_display(
             print("No frame captured, ending detection.")
             break
 
-        results = model(frame)
-        # Apply threshold filtering before rendering
+        raw_results = model(frame)
+        # Normalize the results to a single Results-like object
+        results = raw_results[0] if isinstance(raw_results, (list, tuple)) and raw_results else raw_results
+
+        # Render may be available on Results (older yolov5 API) or Results.render() may return a list
+        annotated_frame = frame
         try:
-            thr = float(getattr(model, "conf", 0.5))
+            if hasattr(results, 'render'):
+                rendered_list = results.render()
+                annotated_frame = rendered_list[0] if rendered_list else frame
+            elif hasattr(results, 'plot'):
+                # Ultralytics Results.plot() returns an image
+                annotated_frame = results.plot()
         except Exception:
-            thr = 0.5
-        try:
-            det = results.xyxy[0]
-            if hasattr(det, 'cpu'):
-                mask = det[:, 4] >= thr
-                results.xyxy[0] = det[mask]
-            else:
-                mask = det[:, 4] >= thr
-                results.xyxy[0] = det[mask]
-        except Exception:
-            pass
-        # Render returns a list of annotated images (BGR)
-        rendered_list = results.render()
-        annotated_frame = rendered_list[0] if rendered_list else frame
+            annotated_frame = frame
 
         cv2.imshow(window_title, annotated_frame)
 
@@ -182,8 +207,8 @@ def detect_and_display(
         if key == ord("q"):  # press q for exit
             break
         elif key == ord("p"):
-            print(" Capturing frame and running object detection...")
-            json_result = GetCaptureObjectAPI(model, frame)
+            print(f" Capturing frame and running object detection with confidence threshold: {conf_threshold}...")
+            json_result = GetCaptureObjectAPI(model, frame, conf_threshold=conf_threshold)
             print(" Detection Result Saved:\n", json.dumps(json_result, indent=2))
 
     cap.release()
@@ -228,7 +253,14 @@ def main():
     )
     args = parser.parse_args()
 
-    model = load_model(args.weights)
+    # Prevent accidentally using the weights path as the inference source.
+    # If we preloaded a model instance at module import (yolo_model), use it.
+    # Otherwise create a new YOLO instance from the provided weights path.
+    if yolo_model is not None:
+        model = yolo_model
+    else:
+        from ultralytics import YOLO as _YOLO
+        model = _YOLO(args.weights)
 
     # Set confidence for Ultralytics autoshape models if available
     if hasattr(model, "conf"):
@@ -237,15 +269,9 @@ def main():
         except Exception:
             pass
 
-    cap = open_source(args.source, backend=(None if args.backend == "default" else args.backend), width=args.width, height=args.height)
-    try:
-        # Smaller frame helps faster display
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-        cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-    except Exception:
-        pass
-    detect_and_display(model, cap)
+    print(f"Using confidence threshold: {args.conf}")
+    cap = open_source(args.source)
+    detect_and_display(model, cap, conf_threshold=float(args.conf))
 
 
 if __name__ == "__main__":

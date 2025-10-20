@@ -45,7 +45,7 @@ def read_detected_ingredients(file_path: Optional[str] = None) -> List[str]:
     
     if file_path is None:
         print("No detection file found. Using default ingredients.")
-        return ["chicken", "banana", "potato"]
+        return ["chicken", "garlic", "eggplant", "egg"]
     
     try:
         with open(file_path, 'r') as f:
@@ -59,14 +59,14 @@ def read_detected_ingredients(file_path: Optional[str] = None) -> List[str]:
                 return ingredients
             else:
                 print("Warning: No ingredients detected in the file. Using default ingredients.")
-                return ["chicken", "banana", "potato"]
+                return ["chicken", "garlic", "eggplant", "egg"]
         else:
             print("Warning: Invalid JSON format in detection file. Using default ingredients.")
-            return ["chicken", "banana", "potato"]
-            
+            return ["chicken", "garlic", "eggplant", "egg"]
+
     except (json.JSONDecodeError, KeyError, IOError) as e:
         print(f"Error reading detection file '{file_path}': {e}. Using default ingredients.")
-        return ["chicken", "banana", "potato"]
+        return ["chicken", "garlic", "eggplant", "egg"]
 
 def cleanup_captured_directory(captured_dir: str = "captured"):
     """
@@ -84,7 +84,7 @@ def cleanup_captured_directory(captured_dir: str = "captured"):
     except Exception as e:
         print(f"Warning: Could not clean up captured directory: {e}")
 
-def run_yolo_detection(weights_path: str = None, source: str = "0", conf: float = 0.5):
+def run_yolo_detection(weights_path: str = None, source: str = "0", conf: float = 0.7):
     """
     Run YOLO detection using the yoloDetect.py module.
     
@@ -130,7 +130,7 @@ def run_yolo_detection(weights_path: str = None, source: str = "0", conf: float 
 def get_ingredients_with_detection(use_detection: bool = True, 
                                  weights_path: str = None,
                                  source: str = "0",
-                                 conf: float = 0.5) -> List[str]:
+                                 conf: float = 0.7) -> List[str]:
     """
     Get ingredients either from YOLO detection or use defaults.
     
@@ -155,4 +155,4 @@ def get_ingredients_with_detection(use_detection: bool = True,
         return read_detected_ingredients()
     else:
         # Use default ingredients
-        return ["chicken", "banana", "potato"]
+        return ["chicken", "garlic", "eggplant", "egg"]

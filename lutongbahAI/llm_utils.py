@@ -83,7 +83,14 @@ def generate_recipes(ingredients, use_cache=False, model="gpt-4.1", detection_js
 
     return result
 
-# MERGE NOTE: This function was identical in both versions, so no merge was needed.
+def _determine_primary_protein(ingredients):
+    proteins = ["chicken", "egg", "fish", "Meat", "Milk", "Cheese", "ShrimGroup","Shrimp"]
+    for ingredient in ingredients:
+        for protein in proteins:
+            if protein in ingredient.lower():
+                return protein.capitalize()
+    return None
+
 def get_recipe_steps(recipe_name, required_ingredients=None, use_cache=False, model="gpt-4.1"):
     """Generate step-by-step instructions for a recipe."""
     cache_key = f"steps_{recipe_name.lower().strip()}_{','.join(sorted(required_ingredients or []))}"

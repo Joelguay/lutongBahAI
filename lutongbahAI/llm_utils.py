@@ -82,7 +82,7 @@ def generate_recipes(ingredients, use_cache=False, model="gpt-4.1", detection_js
     return result
 
 def _determine_primary_protein(ingredients):
-    proteins = ["chicken", "pork", "beef", "fish", "shrimp", "squid", "tofu"]
+    proteins = ["chicken", "egg", "fish", "Meat", "Milk", "Cheese", "ShrimGroup","Shrimp"]
     for ingredient in ingredients:
         for protein in proteins:
             if protein in ingredient.lower():

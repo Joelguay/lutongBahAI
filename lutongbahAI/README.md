@@ -16,7 +16,7 @@ pip install -r ingredient_Detection\OLLama-LLM\requirements.txt
 2) Set your OpenAI API key for the session
 
 ```powershell
-$env:OPENAI_API_KEY="YOUR_API_KEY_HERE"
+$env:OPENAI_API_KEY="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"
 ```
 
 3) Run with detection (CNN first, then LLM)

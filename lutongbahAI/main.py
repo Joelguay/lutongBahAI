@@ -13,7 +13,7 @@ def main():
     parser.add_argument("--no-detection", action="store_true", help="Skip YOLO detection, use default ingredients")
     parser.add_argument("--weights", type=str, help="Path to YOLO model weights (.pt file)")
     parser.add_argument("--source", type=str, default="0", help="Source for detection (webcam index, image path, etc.)")
-    parser.add_argument("--conf", type=float, default=0.5, help="Confidence threshold for detection")
+    parser.add_argument("--conf", type=float, default=0.7, help="Confidence threshold for detection")
     parser.add_argument("--keep-captured", action="store_true", help="Keep captured directory after session (don't auto-cleanup)")
     
     args = parser.parse_args()
@@ -44,6 +44,7 @@ def main():
             # Run YOLO detection first (unless explicitly skipped), then read detected ingredients
             use_detection = not args.no_detection
             if use_detection:
+                print(f"Starting YOLO detection with confidence threshold: {args.conf}")
                 run_yolo_detection(weights_path=args.weights, source=args.source, conf=args.conf)
                 import time
                 time.sleep(2)
@@ -60,7 +61,7 @@ def main():
                 except Exception:
                     detection_json_text = None
             else:
-                ingredients = ["chicken", "banana", "potato"]
+                ingredients = ["chicken", "garlic", "eggplant", "egg"]
             
             print(f"\nUsing ingredients: {', '.join(ingredients)}")
             print("\nGenerating Filipino recipes...")

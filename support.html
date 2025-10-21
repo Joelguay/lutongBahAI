@@ -3,12 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lutong Bahai | Home</title>
+    <title>Lutong Bahai | Support Us</title>
     <link href="https://fonts.cdnfonts.com/css/aileron" rel="stylesheet" />
     <link href="https://fonts.cdnfonts.com/css/fredoka" rel="stylesheet" />
-    <link rel="stylesheet" href="nav.css" />
     <link rel="icon" type="image/svg+xml" href="pic/Logo.png" />
-
     <style>
       * {
         margin: 0;
@@ -19,6 +17,12 @@
       body {
         font-family: "Aileron", sans-serif;
         background-color: #f7f3e8;
+        background-image: url("pic/bg2.png");
+        background-repeat: repeat;
+        background-attachment: fixed;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
       }
 
       .navbar {
@@ -84,7 +88,11 @@
         font-family: "Fredoka", sans-serif;
       }
 
-      .nav-links .active,
+      .nav-links .active {
+        color: #e47c82;
+        border-bottom: 2px solid #e47c82;
+      }
+
       .nav-links a:hover {
         color: #e47c82;
         border-bottom: 2px solid #e47c82;
@@ -95,82 +103,77 @@
       }
 
       main {
-        padding-top: 80px;
+  padding-top: 100px;
+  /* Change min-height to flex-grow */
+  /* min-height: calc(100vh - 100px); */ 
+  flex-grow: 1; /* Pushes the footer down */
+  display: flex; /* Keep the existing flex layout inside main */
+  flex-direction: column; 
+  justify-content: center;
+  align-items: center;
+}
+
+      .card-container {
+        display: flex;
+        justify-content: center;
+        align-items: stretch;
+        gap: 30px;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        flex-wrap: wrap;
       }
 
-      .hero-section,
-      .features-section {
-        min-height: 80vh;
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
+      .card {
+        background-color: rgba(255, 255, 255, 0.9);
+        border-radius: 25px;
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        width: 45%;
+        max-width: 550px;
+        min-height: 400px;
+        flex-grow: 1;
+      }
+
+      .image-card {
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+      }
+
+      .image-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 25px;
+      }
+
+      /* Right Card: Content (About Us Text) */
+      .content-card {
+        padding: 60px;
+        text-align: center;
         display: flex;
         flex-direction: column;
-        align-items: center;
         justify-content: center;
-        padding: 40px 20px;
-        text-align: center;
       }
-
-      .hero-content {
-        padding: 50px 0;
-      }
-
-      .hero-content h1 {
-        font-size: 5em;
-        color: #f06292;
-        text-shadow: 2px 2px #fff;
-        letter-spacing: 5px;
-      }
-
-      .hero-content .subtitle {
-        font-size: 1.2em;
-        color: #555;
-        margin-bottom: 30px;
-      }
-
-      .camera-graphic {
-        width: 150px;
-        height: 150px;
-        background: #eee;
-        border-radius: 50%;
-        margin: 20px auto;
-        border: 5px solid #ffa3c6;
-        line-height: 150px;
-        color: #333;
-        font-size: 0.8em;
-      }
-
-      .start-button {
-        padding: 10px 30px;
-        background-color: #ffa3c6;
-        border: none;
-        border-radius: 50px;
-        color: white;
-        font-size: 1.2em;
-        cursor: pointer;
-        margin-top: 20px;
-        transition: background-color 0.3s;
-        text-transform: uppercase;
-        font-weight: bold;
-      }
-
-      .start-button:hover {
-        background-color: #f06292;
-      }
-
-      .as-of {
-        margin-top: 10px;
-        font-size: 0.9em;
-        color: #888;
-      }
-
+      .footer {
+  padding: 10px;
+  background-color: white;
+  text-align: center;
+  border-top: 1px solid #eee;
+  /* FIX: Add these styles */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000; /* Recommended to ensure it sits on top */
+}
 
       .footer-logo-placeholder {
         height: 30px;
         margin-bottom: 5px;
         font-size: 1.3em;
-        color: #000000;
         color: #666;
         font-family: "Aileron", sans-serif;
       }
@@ -179,23 +182,6 @@
         font-size: 0.9em;
         color: #666;
         font-family: "Aileron", sans-serif;
-      }
-      .start-button-custom {
-        padding: 10px 40px;
-        border: none;
-        border-radius: 50px;
-        cursor: pointer;
-        display: inline-block;
-
-        background-color: #e47c82;
-        color: white;
-        font-family: "Fredoka", sans-serif;
-        font-size: 1.9em;
-        font-weight: 700;
-        text-transform: uppercase;
-        text-decoration: none;
-
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
       }
     </style>
   </head>
@@ -208,28 +194,21 @@
         </div>
 
         <ul class="nav-links">
-          <li><a href="/index" class="active">home</a></li>
+          <li><a href="/index">home</a></li>
           <li><a href="/about">about</a></li>
           <li><a href="/camera">camera</a></li>
           <li><a href="/scope">manual</a></li>
-          <li><a href="/support">support us</a></li>
+          <li><a href="/support" class="active">support us</a></li>
         </ul>
       </div>
     </nav>
 
     <main>
-      <section
-        class="hero-section"
-        style="background-image: url('pic/first.png')"
-      >
-        <br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
-        <a href="/camera" class="start-button-custom">START</a>
-      </section>
-
-      <section
-        class="features-section"
-        style="background-image: url('pic/second.png')"
-      ></section>
+      <div class="card-container">
+        <section class="card image-card">
+          <img src="pic/qr.png" alt="Lutong BahAI Poster" />
+        </section>
+      </div>
     </main>
 
     <footer class="footer">

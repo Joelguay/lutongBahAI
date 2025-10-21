@@ -1,33 +1,54 @@
-# Node / Vite
-node_modules/
-dist/
-.eslintcache
-
-# Python
-lutongbahAI/.venv/
-**/__pycache__/
-*.pyc
+# Python / Virtual Environments
+# Ignore the virtual environment folder
 .venv/
+__pycache__/
+*.pyc
+
+# AI / ML Models & Data
+# Ignore large folders for model training, downloaded libraries, and model weights
+train/
+yolov5/
+*.pt
+
+# Application Output
+# Ignore the folder for captured images and detection results
+captured/
+
+# Node.js / Frontend Dependencies
+# Ignore the massive folder of downloaded packages
+node_modules/
+
+# Build Output
+# Ignore the folder created by 'npm run build'
+dist/
+dist-ssr/
+
+# Environment Variables & Secrets
+# CRITICAL: Never commit your secret API keys
 .env
-.env.*
+*.local
 
-# IDE / OS
-.vscode/
+# IDE & Editor Config
+# Ignore editor-specific settings
+.vscode/*
+!.vscode/extensions.json
 .idea/
+
+# OS Generated Files
+# Ignore system-specific files
 .DS_Store
-Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
-# Training artifacts (keep weights only)
-lutongbahAI/train/**
-!lutongbahAI/train/weights/
-!lutongbahAI/train/weights/best.pt
-!lutongbahAI/train/weights/last.pt
-
-# Captured runtime files
-lutongbahAI/captured/
-
-# Logs
+# Log Files
+# Ignore log files generated during runs
+logs/
 *.log
-
-# Build outputs (optional)
-*.egg-info/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*

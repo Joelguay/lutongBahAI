@@ -33,7 +33,8 @@ def run_openai(prompt, model="gpt-4.1", max_tokens=1200, log_tokens=False):
         response = client.chat.completions.create(
             model=model,
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=max_tokens # This is the corrected parameter name
+            max_tokens=max_tokens, # This is the corrected parameter name
+            temperature = 0.6
         )
         result_text = response.choices[0].message.content.strip()
 
@@ -45,9 +46,6 @@ def run_openai(prompt, model="gpt-4.1", max_tokens=1200, log_tokens=False):
     except Exception as e:
         return f"Error: {str(e)}"
 
-# MERGE NOTE: Kept the enhanced generate_recipes function.
-# It adds a new, optional 'detection_json_text' parameter. This adds new functionality
-# to provide more context to the AI without breaking how the function was used before.
 def generate_recipes(ingredients, use_cache=False, model="gpt-4.1", detection_json_text: str | None = None):
     """Generate 5 Filipino household recipes given ingredients.
     Optionally include raw detection JSON to give the model more context without changing output format.
@@ -84,7 +82,7 @@ def generate_recipes(ingredients, use_cache=False, model="gpt-4.1", detection_js
     return result
 
 def _determine_primary_protein(ingredients):
-    proteins = ["chicken", "egg", "fish", "Meat", "Milk", "Cheese", "ShrimGroup","Shrimp"]
+    proteins = ["chicken", "pork", "beef", "fish", "shrimp", "squid", "tofu"]
     for ingredient in ingredients:
         for protein in proteins:
             if protein in ingredient.lower():
@@ -96,46 +94,57 @@ def get_recipe_steps(recipe_name, required_ingredients=None, use_cache=False, mo
     cache_key = f"steps_{recipe_name.lower().strip()}_{','.join(sorted(required_ingredients or []))}"
     if use_cache and cache_key in steps_cache:
         return steps_cache[cache_key]
+    
+    primary_protein = _determine_primary_protein(required_ingredients or [])
+    
+    protein_instruction = ""
+    if primary_protein:
+        protein_instruction = f"CRITICAL: The main protein in the recipe MUST be {primary_protein} (e.g., use Chicken shanks, not Beef shanks). Do not substitute this primary protein."
+    
+    else:
+         protein_instruction = "CRITICAL: Base the recipe on the main protein found in the Required Ingredients list."
 
     prompt = f"""
 You are an expert Filipino home cook.
-
+**Primary Goal:** Create a delicious version of "{recipe_name}" that **prominently features and is built around** the following ingredients: **{', '.join(required_ingredients)}**.
 Dish: {recipe_name}
 Required Ingredients: {', '.join(required_ingredients or [])}
 
 Generate a recipe in the following **exact format**:
 
 ---
-
+**TITLE RULE:** The main dish name MUST be exactly "{recipe_name}". You can add a descriptive subtitle inside the parentheses. For example: {recipe_name} (Filipino Style Omelette).
 Dish Name (Filipino / English Description)
 Servings: 1-2
+Allergens: (List all common allergens like Shellfish, Peanuts, Gluten, Dairy, Eggs, or None)
 
-Ingredients:  
- List all ingredients with quantities.  
- Include optional substitutions using "👉 Sub:"  
- Include tips if relevant.
- Don't add texts like "-"  
+Ingredients: 
+**CRITICAL INSTRUCTION: The following ingredients MUST be included as primary, non-optional components of this recipe: {', '.join(required_ingredients or [])}. Do NOT list any of these under '(optional)'.**
+List all ingredients with quantities. 
+{protein_instruction} 
+Include optional substitutions using "Sub:" 
+Don't add texts like "-" 
 
 Step-by-Step Cooking Instructions:
 
-1. Step Title:  
-    Detailed instruction(s).  
-    Include cooking times, methods, and realistic household tips.
+1. Step Title: 
+  Detailed instruction(s). 
+  Include cooking times, methods, and realistic household tips.
 
-2. Step Title:  
-    ...continue for all steps until the dish is ready.
+2. Step Title: 
+  ...continue for all steps until the dish is ready.
 
-🍲 Tips & Notes:  
- Include optional tips for flavor, substitutions, serving suggestions, and dietary notes, add allergens as the first note. 
- Don't add texts like "-"  
+🍲 Tips & Notes: 
+Include optional tips for flavor, substitutions, serving suggestions, and dietary notes.
+Don't add texts like "-" 
 
 ---
 
 CRITICAL:
- Include all required ingredients.
- Use clear and concise language.
- Maintain authentic Filipino household cooking methods.
- Keep the recipe reader-friendly.
+Include all required ingredients.
+Use clear and concise language.
+Maintain authentic Filipino household cooking methods.
+Keep the recipe reader-friendly.
 """
 
     result = run_openai(prompt, model=model, max_tokens=2000)
@@ -186,5 +195,3 @@ def get_cache_stats():
         "steps_cache_ttl": steps_cache.ttl,
         "note": "Caching is disabled by default - all searches return fresh results"
     }
-
-    

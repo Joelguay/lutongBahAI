@@ -187,10 +187,19 @@ def video_feed():
 @app.route('/api/getRecipeByInd', methods=['GET'])
 @monitor_performance
 def generate_recipes_endpoint():
-    global latest_detected_ingredients
-    ingredients = list(latest_detected_ingredients) if latest_detected_ingredients else []
-    if not ingredients:
-        ind_val = request.args.get('Ind_val', 'eggplant,garlic,egg')
+    """Generates a list of recipes based on ingredients from a query parameter."""
+    global latest_detected_ingredients # Declare that we are using the global variable
+    ingredients = []
+    
+    # ======================================================================
+    # CHANGE 3: Use the globally stored ingredients first
+    # ======================================================================
+    if latest_detected_ingredients:
+        ingredients = list(latest_detected_ingredients)
+        logger.info(f"Using LIVE detected ingredients: {ingredients}")
+    else:
+        # Fallback to query parameter or default if no live ingredients are found
+        ind_val = request.args.get('Ind_val', 'fish,garlic,potatoes')
         ingredients = [i.strip() for i in ind_val.split(',') if i.strip()]
     logger.info(f"Ingredients used: {ingredients}")
 
@@ -222,16 +231,17 @@ def generate_recipes_endpoint():
         logger.error(f"Recipe generation failed: {e}")
         return jsonify({'error': 'Failed to generate recipes'}), 500
 
+# In api.py
+
 @app.route('/api/getRecipeByDish', methods=['GET'])
 @monitor_performance
 def get_recipe_steps_endpoint():
     recipe_name = request.args.get('recipe_val', '')
     if not recipe_name:
-        return jsonify({'error': 'Recipe name required'}), 400
-
-    ingredients = list(latest_detected_ingredients) if latest_detected_ingredients else ["eggplant", "garlic", "egg"]
+        return jsonify({'error': 'A recipe name is required.'}), 400
+    
     try:
-        steps = get_recipe_steps(recipe_name, required_ingredients=ingredients, use_cache=False, model="gpt-4.1")
+        steps = get_recipe_steps(recipe_name, required_ingredients=[], use_cache=False, model="gpt-4.1")
         if isinstance(steps, bytes):
             steps = steps.decode('utf-8', errors='replace')
         return jsonify({'steps': steps})

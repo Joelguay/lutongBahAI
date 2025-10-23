@@ -1,0 +1,448 @@
+@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&display=swap");
+
+.random-button {
+  background-color: #e47c82;
+  color: #ffffff;
+  padding: 15px 30px;
+  border: none;
+  border-radius: 30px;
+  font-size: 18px;
+  font-family: "Fredoka", sans-serif;
+  font-weight: bold;
+  cursor: pointer;
+  /* CORRECTED: Fixed the invalid color in box-shadow */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  margin-left: 565px;
+  margin-top: 30px;
+}
+body {
+  /* Other existing styles for background, etc. */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.title {
+  color: #e47c82;
+  font-family: "Fredoka", sans-serif;
+  font-size: 50px;
+}
+
+.random-button:hover {
+  background-color: #636262;
+  transform: scale(1.05);
+}
+
+/* General Styles */
+.loading-text,
+.error-text {
+  text-align: center;
+  margin-top: 4rem;
+  font-size: 1.2rem;
+  font-style: italic;
+  color: #9ca3af;
+}
+
+/* Recipe List Styles */
+.header {
+  display: flex;
+  align-items: center;
+  /* FIX: Use space-between to push the children to the opposite ends */
+  justify-content: space-between; 
+  margin-bottom: 2rem;
+  width: 100%;
+}
+.app-container {
+  flex-grow: 1; 
+  padding-top: 0;
+  padding-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%; /* Ensure it spans the full width of #root */
+  max-width: 1000px;
+  margin: 0 auto;
+}
+.random-button {
+  /* ... existing styles ... */
+  /* REMOVE: margin-left: 565px; */
+  margin: 30px auto 0 auto; /* Center the block element */
+  display: block; /* Make it a block element to accept auto margins */
+}
+
+
+.recipe-item {
+  background: white;
+  border: 1px solid rgba(100, 100, 100, 0.5);
+  border-radius: 16px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); 
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+.recipe-item h2 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: black;
+}
+
+.recipe-item p {
+  margin-top: 0;
+  color: black;
+  line-height: 1.6;
+}
+
+.view-steps-btn {
+  padding: 8px 14px;
+  margin-right: 1rem;
+  background: transparent;
+  color: #fbbf24;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  border-radius: 9999px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.view-steps-btn:hover {
+  background-color: rgba(251, 191, 36, 0.1);
+}
+
+/* Recipe Steps View Styles */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+.back-link {
+  background: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.09);
+  font-size: 1rem;
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  padding: 8px 14px;
+  border-radius: 9999px;
+  cursor: pointer;
+  color: #fbbf24;
+  flex-shrink: 0;
+  margin-left: 20px;
+}
+
+/* MERGED: Combined the two .card definitions */
+.card {
+  /* From Definition 1 (Kept for content card styling) */
+  padding: 2rem;
+  color: #1f2937;
+  /* From Definition 2 (Kept for layout and visual styling) */
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 25px;
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 2500px;
+  min-height: 400px;
+  flex-grow: 1;
+}
+
+.card > p {
+  font-size: 1.25rem; /* ~20px. Adjust this value as you like */
+  font-weight: 500; /* Optional: makes the text a bit bolder */
+  color: #4b5563; /* A slightly muted text color */
+  margin-top: 0;
+  margin-bottom: 2rem; /* Add some space below the servings text */
+}
+
+.recipe-steps ol {
+  padding-left: 20px;
+}
+
+.recipe-steps li {
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+/* Structured Recipe Display Styles */
+.recipe-details {
+  /* MERGED: Kept the darker color from the later definition */
+  color: #0f172a;
+  line-height: 1.6;
+}
+
+.servings-info {
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
+.ingredients-section,
+.instructions-section,
+.notes-section {
+  margin-bottom: 2rem;
+}
+
+.ingredients-section h3,
+.instructions-section h3,
+.notes-section h3 {
+  color: #f8fafc;
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+  border-bottom: 2px solid rgba(251, 191, 36, 0.3);
+  padding-bottom: 0.5rem;
+}
+
+.ingredients-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ingredient-item {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  transition: background-color 0.2s;
+}
+
+.ingredient-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.instructions-list {
+  counter-reset: step-counter;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.instruction-step {
+  counter-increment: step-counter;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  position: relative;
+}
+
+.instruction-step::before {
+  content: counter(step-counter);
+  position: absolute;
+  left: -10px;
+  top: 20px;
+  background: #fbbf24;
+  color: #0f172a;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.step-title {
+  font-weight: 600;
+  color: #f8fafc;
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+  margin-left: 20px;
+}
+
+.step-details {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  margin-left: 20px;
+}
+
+.step-detail {
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 3px solid rgba(251, 191, 36, 0.5);
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  border-radius: 0 6px 6px 0;
+}
+
+.notes-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.note-item {
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  font-style: italic;
+}
+
+.header h1 {
+  /* No special flex properties needed, just allow it to take space */
+  font-size: 2.5em; /* Example: adjust font size if needed */
+  color: #0f172a;
+  margin: 0;
+}
+
+/* Removed: This was redundant with .ingredients-list, keeping list-style-type: none just in case it was a specific override, but removing the duplicate padding. */
+.ingredient-list {
+  list-style-type: none;
+}
+
+.recipe-section-box {
+  border: 1px solid #e5e7eb; /* A light gray border */
+  border-radius: 8px; /* Rounded corners for the box */
+  padding: 1rem 1.5rem; /* Space inside the box */
+  margin-bottom: 1.5rem; /* Space between the boxes */
+  background-color: #ffffff; /* A white background for the box */
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); /* A subtle shadow */
+}
+
+/* Optional: Make the h3 headers inside the boxes a little smaller */
+.recipe-section-box h3 {
+  font-size: 1.25rem;
+  margin-top: 0;
+}
+
+.navbar {
+  background-color: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  position: fixed;
+  width: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+}
+
+.navbar-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 10px 40px;
+  height: 80px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.navbar-background-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 0 0 40px 40px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  z-index: -1;
+}
+
+.logo-placeholder img {
+  height: 70px;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 40px;
+  text-transform: lowercase;
+  align-items: center;
+  margin-right: 20px;
+}
+
+.nav-links li {
+  padding: 0;
+  font-size: 1.2em;
+  font-weight: 600;
+  color: #555;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #555;
+  padding-bottom: 5px;
+  transition: color 0.3s;
+  font-family: "Fredoka", sans-serif;
+}
+
+.nav-links .active {
+  color: #e47c82;
+  border-bottom: 2px solid #e47c82;
+}
+
+.nav-links a:hover {
+  color: #e47c82;
+  border-bottom: 2px solid #e47c82;
+}
+
+.nav-links li:last-child a:hover {
+  border-bottom: none;
+}
+
+.footer {
+  padding: 10px;
+  background-color: white;
+  text-align: center;
+  border-top: 1px solid #eee;
+  margin-top: 40px;
+}
+
+.footer-logo-placeholder {
+  height: 30px;
+  margin-bottom: 5px;
+  font-size: 1.3em;
+  color: #666;
+  font-family: "Aileron", sans-serif;
+}
+
+.copyright {
+  font-size: 0.9em;
+  color: #666;
+  font-family: "Aileron", sans-serif;
+}
+
+main {
+  padding-top: 100px;
+  min-height: calc(100vh - 100px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.card-container {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  gap: 30px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  flex-wrap: wrap;
+}
+
+.image-card {
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.image-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 25px;
+}

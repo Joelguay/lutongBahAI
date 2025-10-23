@@ -24,19 +24,10 @@ def main():
     
     if args.api:
         # Run as Flask API
-        # --- MODIFIED BLOCK ---
-        from api import app, set_initial_confidence  # Import the new function
-        
-        # Set the confidence threshold in the API module *before* running
-        set_initial_confidence(args.conf)
-        # --- END MODIFIED BLOCK ---
-        
+        from api import app
         print("Starting Flask API server...")
-        print(f"Confidence threshold set to: {args.conf}") # Confirmation message
         print("Press Ctrl+C to stop server and cleanup captured directory")
         try:
-            # debug=True will auto-reload the app. 
-            # When it reloads, it re-runs main.py, which re-sets the confidence.
             app.run(host="0.0.0.0", port=5000, debug=True)
         except KeyboardInterrupt:
             print("\nShutting down server...")

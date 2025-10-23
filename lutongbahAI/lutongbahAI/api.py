@@ -1,3 +1,6 @@
+# ============================================================
+# Optimized LutongBahAI API (Full 640×640, Threaded Camera, FP16)
+# ============================================================
 from flask import Flask, jsonify, make_response, request, render_template, Response
 from flask_cors import CORS
 from llm_utils import generate_recipes, get_recipe_steps, clear_cache, get_cache_stats
@@ -17,23 +20,6 @@ from threading import Thread
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# --- Globals ---
-latest_detected_ingredients = set()
-CONFIDENCE_THRESHOLD = 0.7  # Default, can be overridden by main.py
-
-def set_initial_confidence(value):
-    """Sets the global confidence threshold from an external script (like main.py)."""
-    global CONFIDENCE_THRESHOLD
-    try:
-        conf_float = float(value)
-        if 0.0 <= conf_float <= 1.0:
-            CONFIDENCE_THRESHOLD = conf_float
-            logger.info(f"Initial confidence threshold set by main: {CONFIDENCE_THRESHOLD}")
-        else:
-            logger.warning(f"Invalid confidence value {value} passed from main. Using default {CONFIDENCE_THRESHOLD}.")
-    except (ValueError, TypeError):
-         logger.warning(f"Invalid confidence value {value} passed from main. Using default {CONFIDENCE_THRESHOLD}.")
-
 dist_folder = os.path.join(os.path.dirname(__file__), '..', 'dist')
 app = Flask(__name__, template_folder=dist_folder, static_folder=os.path.join(dist_folder, 'assets'))
 CORS(app)
@@ -43,10 +29,15 @@ clear_cache()
 atexit.register(cleanup_captured_directory)
 logger.info("Registered cleanup function for captured ingredients directory.")
 
+# ============================================================
+# Globals
+# ============================================================
+latest_detected_ingredients = set()
+CONFIDENCE_THRESHOLD = 0.7
 
-# --- YOLO Model Loading ---
-yolo_model = None
-trained_class_ids = None  # Will hold the list of IDs to detect (e.g., [0, 5, 12])
+# ============================================================
+# YOLO Model Loading
+# ============================================================
 try:
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     from ultralytics import YOLO
@@ -54,40 +45,17 @@ try:
     yolo_model.to(device)
     logger.info(f"YOLO model loaded on device: {device}")
 
-    trained_class_names = set()
-    try:
-        # Get the {name: id} mapping from the loaded model
-        model_names_lower = {name.lower(): cls_id for cls_id, name in yolo_model.names.items()}
-        
-        # Load your custom class names from classes.txt
-        classes_path = os.path.join(os.path.dirname(__file__), 'classes.txt')
-        with open(classes_path, 'r', encoding='utf-8') as cf:
-            trained_class_names = {ln.strip().lower() for ln in cf if ln.strip()}
-
-        # Get the list of IDs that match your class names
-        trained_class_ids = [model_names_lower[name] for name in trained_class_names if name in model_names_lower]
-        
-        if trained_class_ids:
-            logger.info(f"Successfully loaded {len(trained_class_ids)} trained class IDs to filter for.")
-        else:
-            logger.warning("No valid class IDs found from classes.txt. YOLO will detect ALL classes.")
-            
-    except Exception as e:
-        logger.error(f"Error loading classes.txt or mapping IDs: {e}")
-        # Fallback to detecting all classes
-        trained_class_ids = None 
-
     # Warm up model once to remove first-frame lag
     dummy = np.zeros((640, 640, 3), dtype=np.uint8)
-    yolo_model.predict(dummy, verbose=False, classes=trained_class_ids) # Warm up with class filter
+    yolo_model.predict(dummy, verbose=False)
     logger.info("Model warm-up complete.")
-
 except Exception as e:
     logger.error(f"Error loading YOLO model: {e}")
     yolo_model = None
 
-# --- Threaded Camera Class (non-blocking) ---
-
+# ============================================================
+# Threaded Camera Class (non-blocking)
+# ============================================================
 class VideoCamera:
     def __init__(self, src=0):
         self.camera = cv2.VideoCapture(src)
@@ -108,7 +76,9 @@ class VideoCamera:
         self.running = False
         self.camera.release()
 
-# --- Performance Monitoring Decorator ---
+# ============================================================
+# Performance Monitoring Decorator
+# ============================================================
 def monitor_performance(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -124,8 +94,9 @@ def monitor_performance(f):
             return jsonify({'error': f'Internal error in {f.__name__}'}), 500
     return decorated_function
 
-
+# ============================================================
 # --- Video Streaming Function (Optimized) ---
+# ============================================================
 def generate_frames():
     """Generator function to capture video, run YOLO detection, and yield frames."""
     global latest_detected_ingredients
@@ -152,34 +123,40 @@ def generate_frames():
             with torch.no_grad():
                 results = yolo_model.predict(
                     frame,
-                    conf=CONFIDENCE_THRESHOLD,       # Use the global, API-controlled threshold
+                    conf=CONFIDENCE_THRESHOLD,
                     verbose=False,
-                    imgsz=640,                      # Full size, no resize
+                    imgsz=640,                       # Full size, no resize
                     half=True if device == 'cuda' else False,
-                    device=device,
-                    classes=trained_class_ids      
+                    device=device
                 )
 
             result = results[0] if isinstance(results, (list, tuple)) else results
             detected_names = set()
 
-            # --- SIMPLIFIED LOGIC ---
-            # The 'predict' call already filtered by confidence AND class.
-            # We just need to collect the names.
+            # Load trained classes
+            classes_path = os.path.join(os.path.dirname(__file__), 'classes.txt')
+            trained_classes = set()
+            try:
+                with open(classes_path, 'r', encoding='utf-8') as cf:
+                    trained_classes = {ln.strip().lower() for ln in cf if ln.strip()}
+            except Exception:
+                pass
+
+            TRAINED_CLASS_CONF = 0.9
             if result and len(result.boxes) > 0:
                 for box in result.boxes:
                     try:
                         cls_id = int(box.cls[0])
                         name = yolo_model.names.get(cls_id, str(cls_id))
-                        detected_names.add(name)
+                        conf = float(box.conf[0]) if hasattr(box, 'conf') else None
+                        if name.strip().lower() in trained_classes and conf and conf >= TRAINED_CLASS_CONF:
+                            detected_names.add(name)
                     except Exception:
                         continue
-            # --- END OF SIMPLIFIED BLOCK ---
 
             latest_detected_ingredients = detected_names
 
             # Render results to frame
-            # This 'plot()' will NOW only draw the objects we want!
             rendered_frame = result.plot() if hasattr(result, "plot") else frame
             ret, buffer = cv2.imencode('.jpg', rendered_frame)
             if not ret:
@@ -191,8 +168,9 @@ def generate_frames():
             logger.error(f"Frame processing error: {e}")
             continue
 
-
+# ============================================================
 # --- ROUTES ---
+# ============================================================
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve(path):
@@ -203,7 +181,9 @@ def video_feed():
     return Response(generate_frames(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
+# ============================================================
 # --- Recipe Endpoints ---
+# ============================================================
 @app.route('/api/getRecipeByInd', methods=['GET'])
 @monitor_performance
 def generate_recipes_endpoint():
@@ -211,7 +191,9 @@ def generate_recipes_endpoint():
     global latest_detected_ingredients # Declare that we are using the global variable
     ingredients = []
     
-    # Use the globally stored ingredients first
+    # ======================================================================
+    # CHANGE 3: Use the globally stored ingredients first
+    # ======================================================================
     if latest_detected_ingredients:
         ingredients = list(latest_detected_ingredients)
         logger.info(f"Using LIVE detected ingredients: {ingredients}")
@@ -249,6 +231,8 @@ def generate_recipes_endpoint():
         logger.error(f"Recipe generation failed: {e}")
         return jsonify({'error': 'Failed to generate recipes'}), 500
 
+# In api.py
+
 @app.route('/api/getRecipeByDish', methods=['GET'])
 @monitor_performance
 def get_recipe_steps_endpoint():
@@ -265,7 +249,9 @@ def get_recipe_steps_endpoint():
         logger.error(f"Error getting recipe steps for '{recipe_name}': {e}")
         return jsonify({'error': 'Failed to get recipe steps'}), 500
 
+# ============================================================
 # --- Confidence Control ---
+# ============================================================
 @app.route('/api/setConfidence', methods=['POST'])
 @monitor_performance
 def set_confidence_endpoint():
@@ -286,7 +272,9 @@ def set_confidence_endpoint():
 def get_confidence_endpoint():
     return jsonify({'confidence': CONFIDENCE_THRESHOLD})
 
+# ============================================================
 # --- Error Handlers ---
+# ============================================================
 @app.errorhandler(404)
 def not_found(error):
     return jsonify({'error': 'API endpoint not found'}), 404
@@ -296,8 +284,9 @@ def internal_error(error):
     logger.error(f"Internal Server Error: {error}")
     return jsonify({'error': 'Internal server error'}), 500
 
+# ============================================================
 # --- Run Server ---
+# ============================================================
 if __name__ == '__main__':
     print("Starting LutongBahAI API server on http://localhost:5000")
-    print(f"Default confidence threshold: {CONFIDENCE_THRESHOLD}")
     app.run(host='0.0.0.0', port=5000, debug=False)

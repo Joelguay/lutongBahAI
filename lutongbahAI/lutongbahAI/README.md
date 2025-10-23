@@ -1,62 +1,3 @@
-<<<<<<< HEAD
-## LutongBahAI — YOLOv5 Ingredient Detection + OpenAI Recipes (Windows)
-
-This project has two parts:
-- Python backend in `lutongbahAI/` (Flask API, YOLOv5 inference, OpenAI integration)
-- React frontend (Vite) in the repo root `src/`
-
-### 1) Prerequisites
-- Python 3.10+
-- Node.js 18+
-- Webcam (optional) or image/video files
-
-### 2) Backend Setup (Python)
-```powershell
-cd lutongbahAI
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install --upgrade pip
-pip install -r requirements.txt
-# Set your key for this shell
-$env:OPENAI_API_KEY="YOUR_OPENAI_API_KEY"
-```
-
-Run API server (Flask):
-```powershell
-python main.py --api
-# Server on http://localhost:5000
-```
-
-Or run CLI with detection first:
-```powershell
-python main.py --weights .\train\weights\best.pt
-```
-
-Optional build to serve React from Flask (production):
-```powershell
-cd ..
-npm run build
-# Flask in `lutongbahAI/api.py` serves `../dist/index.html` and assets
-```
-
-### 3) Frontend Setup (Vite)
-```powershell
-npm install
-npm run dev
-# Frontend on http://localhost:5173
-```
-
-The frontend calls the backend at `http://localhost:5000/api/...`.
-
-### 4) Useful API endpoints
-- `GET http://localhost:5000/api/getRecipeByInd?Ind_val=fish,garlic,potatoes`
-- `GET http://localhost:5000/api/getRecipeByDish?recipe_val=Adobo`
-- `GET http://localhost:5000/api/video_feed` (MJPEG stream if camera enabled)
-
-### 5) Notes
-- Weights path default is `lutongbahAI/train/weights/best.pt`.
-- Never commit real API keys. Use `$env:OPENAI_API_KEY` per session.
-=======
 ## YOLO Ingredient Detection → OpenAI Recipe Generation
 
 This app integrates your custom YOLOv5 CNN (trained on 23 ingredient classes) with OpenAI to generate Filipino recipes. The flow is: CNN runs first to detect ingredients → results are saved as JSON → JSON and ingredient list are sent to OpenAI to generate recipes → you choose a dish to view detailed steps.
@@ -212,4 +153,3 @@ If you trained on 23 classes (see `classes.txt`), examples include: Banana, Butt
 If you need the README to reflect previous Ollama instructions exactly (or want a button in the web UI to trigger a fresh capture), let me know and I’ll add it.
 
 
->>>>>>> recovery-branch

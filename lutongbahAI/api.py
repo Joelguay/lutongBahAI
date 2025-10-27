@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 # --- Globals ---
 latest_detected_ingredients = set()
-CONFIDENCE_THRESHOLD = 0.7  # Default, can be overridden by main.py
+CONFIDENCE_THRESHOLD = 0.7  
 
 def set_initial_confidence(value):
     """Sets the global confidence threshold from an external script (like main.py)."""
@@ -42,7 +42,6 @@ CORS(app)
 clear_cache()
 atexit.register(cleanup_captured_directory)
 logger.info("Registered cleanup function for captured ingredients directory.")
-
 
 # --- YOLO Model Loading ---
 yolo_model = None
@@ -163,7 +162,6 @@ def generate_frames():
             result = results[0] if isinstance(results, (list, tuple)) else results
             detected_names = set()
 
-            # --- SIMPLIFIED LOGIC ---
             # The 'predict' call already filtered by confidence AND class.
             # We just need to collect the names.
             if result and len(result.boxes) > 0:
@@ -174,7 +172,6 @@ def generate_frames():
                         detected_names.add(name)
                     except Exception:
                         continue
-            # --- END OF SIMPLIFIED BLOCK ---
 
             latest_detected_ingredients = detected_names
 

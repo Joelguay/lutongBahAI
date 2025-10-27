@@ -1,57 +1,116 @@
-## LutongBahAI — YOLOv5 Ingredient Detection + OpenAI Recipes (Windows)
+# LutongBahAI - AI-Powered Filipino Recipe Generator
 
-This project has two parts:
-- Python backend in `lutongbahAI/` (Flask API, YOLOv5 inference, OpenAI integration)
-- React frontend (Vite) in the repo root `src/`
+A complete web application that uses computer vision (YOLO) and artificial intelligence (OpenAI GPT) to detect ingredients and generate authentic Filipino recipes.
 
-### 1) Prerequisites
-- Python 3.10+
-- Node.js 18+
-- Webcam (optional) or image/video files
+## 🚀 Quick Start
 
-### 2) Backend Setup (Python)
+### Prerequisites
+- **Python 3.10+** installed and on PATH
+- **Node.js 18+** for frontend development
+- **OpenAI API Key** (get one at [platform.openai.com](https://platform.openai.com))
+- **Webcam** (optional - can use image/video files)
+
+### Installation
+
+#### 1. Backend Setup
 ```powershell
 cd lutongbahAI
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-pip install --upgrade pip
 pip install -r requirements.txt
-# Set your key for this shell
-$env:OPENAI_API_KEY="YOUR_OPENAI_API_KEY"
 ```
 
-Run API server (Flask):
+#### 2. Configure API Key
+Create a `.env` file in `lutongbahAI/` directory:
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+#### 3. Run Backend Server
 ```powershell
+cd lutongbahAI
+.\.venv\Scripts\Activate.ps1
 python main.py --api
-# Server on http://localhost:5000
 ```
+Server runs on **http://localhost:5000**
 
-Or run CLI with detection first:
-```powershell
-python main.py --weights .\train\weights\best.pt
-```
-
-Optional build to serve React from Flask (production):
-```powershell
-cd ..
-npm run build
-# Flask in `lutongbahAI/api.py` serves `../dist/index.html` and assets
-```
-
-### 3) Frontend Setup (Vite)
+#### 4. Frontend Development (Optional)
 ```powershell
 npm install
 npm run dev
-# Frontend on http://localhost:5173
 ```
+Runs on **http://localhost:5173**
 
-The frontend calls the backend at `http://localhost:5000/api/...`.
+## 📖 Complete Documentation
 
-### 4) Useful API endpoints
-- `GET http://localhost:5000/api/getRecipeByInd?Ind_val=fish,garlic,potatoes`
-- `GET http://localhost:5000/api/getRecipeByDish?recipe_val=Adobo`
-- `GET http://localhost:5000/api/video_feed` (MJPEG stream if camera enabled)
+For detailed setup, troubleshooting, API endpoints, architecture diagrams, and advanced usage:
+👉 **[Full Documentation](lutongbahAI/README.md)**
 
-### 5) Notes
-- Weights path default is `lutongbahAI/train/weights/best.pt`.
-- Never commit real API keys. Use `$env:OPENAI_API_KEY` per session.
+## 🎯 Features
+
+- 🎥 **Real-time ingredient detection** from webcam or images
+- 🤖 **AI-powered recipe generation** using OpenAI GPT-4
+- 📱 **Modern web interface** with live video streaming
+- 🎯 **Custom YOLO model** trained on 33 ingredient classes
+- 🔧 **Adjustable detection confidence** thresholds
+- 💾 **Automatic cleanup** of temporary files
+- 🚀 **Caching system** for faster responses
+
+## 🏗️ Architecture
+
+### Backend (`lutongbahAI/`)
+- Python Flask API server
+- YOLO object detection for ingredients
+- OpenAI integration for recipe generation
+- Live video streaming
+
+### Frontend (`src/`)
+- React.js with Vite
+- Real-time video display
+- Recipe browsing and detailed steps
+- Modern UI/UX
+
+## 🎮 Quick Usage
+
+### API Mode
+```powershell
+cd lutongbahAI
+.\.venv\Scripts\Activate.ps1
+python main.py --api
+```
+Open `http://localhost:5000` in your browser.
+
+### CLI Mode
+```powershell
+python main.py --weights .\train\weights\best.pt
+```
+- Press **P** to capture ingredients
+- Press **Q** to quit and generate recipes
+
+## 🔌 API Endpoints
+
+- `GET /api/getRecipeByInd?Ind_val=ingredient1,ingredient2` - Generate recipes
+- `GET /api/getRecipeByDish?recipe_val=Dish Name` - Get recipe steps
+- `GET /api/video_feed` - Live video stream
+- `POST /api/setConfidence` - Adjust detection confidence
+
+## 🐛 Common Issues
+
+**"OPENAI_API_KEY is not set"**
+- Create `.env` file in `lutongbahAI/` with your API key
+
+**Camera not working**
+- Try different camera indices: `--source "1"`
+
+**No module found**
+- Ensure venv is activated: `.\.venv\Scripts\Activate.ps1`
+
+👉 See [Full Documentation](lutongbahAI/README.md) for complete troubleshooting.
+
+## 📄 License
+
+Educational and research purposes.
+
+---
+
+**Note**: This system requires an OpenAI API key with credits. Usage will incur API costs.

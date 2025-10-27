@@ -92,8 +92,30 @@ def GetCaptureObjectAPI(model, image, save_dir: str = "captured", conf_threshold
     # Save the image
     cv2.imwrite(image_path, image)
 
-    # Run detection. Ultralytics model(...) may return a Results object or a list of Results.
-    raw_results = model(image)
+    # Load trained classes from classes.txt
+    trained_class_ids = None
+    classes_path = os.path.join(os.path.dirname(__file__), 'classes.txt')
+    try:
+        with open(classes_path, 'r', encoding='utf-8') as cf:
+            trained_class_names = {ln.strip().lower() for ln in cf if ln.strip()}
+        
+        # Map class names to IDs
+        names = getattr(model, 'names', {})
+        model_names_lower = {name.lower(): cls_id for cls_id, name in names.items()}
+        trained_class_ids = [model_names_lower[name] for name in trained_class_names if name in model_names_lower]
+        
+        if trained_class_ids:
+            print(f"Filtering to {len(trained_class_ids)} trained classes")
+    except Exception as e:
+        print(f"Could not load classes.txt: {e}")
+        trained_class_ids = None
+
+    # Run detection with class filtering. Ultralytics model(...) may return a Results object or a list of Results.
+    if trained_class_ids:
+        raw_results = model(image, classes=trained_class_ids, conf=conf_threshold)
+    else:
+        raw_results = model(image, conf=conf_threshold)
+    
     # Normalize to a single Results-like object
     results = raw_results[0] if isinstance(raw_results, (list, tuple)) and raw_results else raw_results
     names = getattr(model, 'names', {})
@@ -122,18 +144,6 @@ def GetCaptureObjectAPI(model, image, save_dir: str = "captured", conf_threshold
 
     detected = set()
     try:
-        # Load trained classes (whitelist) if available. Use lowercase for robust matching.
-        classes_path = os.path.join(os.path.dirname(__file__), 'classes.txt')
-        trained_classes = set()
-        try:
-            with open(classes_path, 'r', encoding='utf-8') as cf:
-                trained_classes = {ln.strip().lower() for ln in cf if ln.strip()}
-        except Exception:
-            trained_classes = set()
-
-        # Use a stricter confidence for classes we actually trained on
-        TRAINED_CLASS_CONF = 0.9
-
         # Prefer structured access (xyxy) when available
         preds = getattr(results, 'xyxy', None)
         if preds is None:
@@ -149,16 +159,10 @@ def GetCaptureObjectAPI(model, image, save_dir: str = "captured", conf_threshold
                 try:
                     cls = int(cls)
                     label = names.get(cls, str(cls)).strip()
-                    label_l = label.lower()
-                except Exception:
-                    continue
-
-                # If detection label is in trained-classes, require TRAINED_CLASS_CONF; otherwise ignore
-                if label_l in trained_classes:
-                    if float(conf) >= TRAINED_CLASS_CONF:
+                    # Since we already filtered during prediction, just add all detections
+                    if float(conf) >= conf_threshold:
                         detected.add(label)
-                else:
-                    # skip detections for classes we didn't train on
+                except Exception:
                     continue
     except Exception:
         # If anything goes wrong, fall back to empty detection set
@@ -179,13 +183,29 @@ def GetCaptureObjectAPI(model, image, save_dir: str = "captured", conf_threshold
 def detect_and_display(
     model, cap, window_title: str = "YOLOv5 Detection - Press 'P' to capture", conf_threshold: float = 0.7
 ):
+    # Load trained classes for filtering during display
+    trained_class_ids = None
+    classes_path = os.path.join(os.path.dirname(__file__), 'classes.txt')
+    try:
+        with open(classes_path, 'r', encoding='utf-8') as cf:
+            trained_class_names = {ln.strip().lower() for ln in cf if ln.strip()}
+        names = getattr(model, 'names', {})
+        model_names_lower = {name.lower(): cls_id for cls_id, name in names.items()}
+        trained_class_ids = [model_names_lower[name] for name in trained_class_names if name in model_names_lower]
+    except Exception:
+        trained_class_ids = None
+
     while True:
         ret, frame = cap.read()
         if not ret:
             print("No frame captured, ending detection.")
             break
 
-        raw_results = model(frame)
+        # Run detection with class filtering if classes are specified
+        if trained_class_ids:
+            raw_results = model(frame, classes=trained_class_ids, conf=conf_threshold, verbose=False)
+        else:
+            raw_results = model(frame, conf=conf_threshold, verbose=False)
         # Normalize the results to a single Results-like object
         results = raw_results[0] if isinstance(raw_results, (list, tuple)) and raw_results else raw_results
 

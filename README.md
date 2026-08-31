@@ -1,116 +1,55 @@
-# LutongBahAI - AI-Powered Filipino Recipe Generator
+# LutongBahAI
 
-A complete web application that uses computer vision (YOLO) and artificial intelligence (OpenAI GPT) to detect ingredients and generate authentic Filipino recipes.
+AI-powered Filipino recipe helper: scan ingredients, get lutong bahay suggestions.
 
-## 🚀 Quick Start
+## Architecture
 
-### Prerequisites
-- **Python 3.10+** installed and on PATH
-- **Node.js 18+** for frontend development
-- **OpenAI API Key** (get one at [platform.openai.com](https://platform.openai.com))
-- **Webcam** (optional - can use image/video files)
-
-### Installation
-
-#### 1. Backend Setup
-```powershell
-cd lutongbahAI
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
+```
+web/        Next.js (Vercel) — pages + browser camera
+api/        FastAPI — YOLO detect + OpenAI recipes
+training/   How to add classes later
 ```
 
-#### 2. Configure API Key
-Create a `.env` file in `lutongbahAI/` directory:
-```env
-OPENAI_API_KEY=your_openai_api_key_here
+The older Vite/Flask files (`index.html`, `src/`, `lutongbahAI/`) are still here for reference. **Run the new app from `web/` and `api/`.**
+
+## Quick start
+
+### API
+
+```bash
+cd api
+python3 -m venv .venv
+source .venv/bin/activate
+pip install fastapi "uvicorn[standard]" python-dotenv openai python-multipart pydantic
+cp .env.example .env   # add OPENAI_API_KEY for recipes
+uvicorn app.main:app --reload --port 8000
 ```
 
-#### 3. Run Backend Server
-```powershell
-cd lutongbahAI
-.\.venv\Scripts\Activate.ps1
-python main.py --api
-```
-Server runs on **http://localhost:5000**
+Full `requirements.txt` includes PyTorch/Ultralytics. Install that when you add `api/weights/best.pt`.
 
-#### 4. Frontend Development (Optional)
-```powershell
+Until weights exist, `/v1/detect` runs in **mock** mode (no boxes). Type ingredients in the UI.
+
+### Web
+
+```bash
+cd web
+cp .env.example .env.local
 npm install
 npm run dev
 ```
-Runs on **http://localhost:5173**
 
-## 📖 Complete Documentation
+Open http://localhost:3000
 
-For detailed setup, troubleshooting, API endpoints, architecture diagrams, and advanced usage:
-👉 **[Full Documentation](lutongbahAI/README.md)**
+| Page | Route |
+|------|--------|
+| Home | `/` |
+| About | `/about` |
+| Camera + recipes | `/camera` |
+| Manual | `/manual` |
+| Support | `/support` |
 
-## 🎯 Features
+## Deploy later
 
-- 🎥 **Real-time ingredient detection** from webcam or images
-- 🤖 **AI-powered recipe generation** using OpenAI GPT-4
-- 📱 **Modern web interface** with live video streaming
-- 🎯 **Custom YOLO model** trained on 33 ingredient classes
-- 🔧 **Adjustable detection confidence** thresholds
-- 💾 **Automatic cleanup** of temporary files
-- 🚀 **Caching system** for faster responses
-
-## 🏗️ Architecture
-
-### Backend (`lutongbahAI/`)
-- Python Flask API server
-- YOLO object detection for ingredients
-- OpenAI integration for recipe generation
-- Live video streaming
-
-### Frontend (`src/`)
-- React.js with Vite
-- Real-time video display
-- Recipe browsing and detailed steps
-- Modern UI/UX
-
-## 🎮 Quick Usage
-
-### API Mode
-```powershell
-cd lutongbahAI
-.\.venv\Scripts\Activate.ps1
-python main.py --api
-```
-Open `http://localhost:5000` in your browser.
-
-### CLI Mode
-```powershell
-python main.py --weights .\train\weights\best.pt
-```
-- Press **P** to capture ingredients
-- Press **Q** to quit and generate recipes
-
-## 🔌 API Endpoints
-
-- `GET /api/getRecipeByInd?Ind_val=ingredient1,ingredient2` - Generate recipes
-- `GET /api/getRecipeByDish?recipe_val=Dish Name` - Get recipe steps
-- `GET /api/video_feed` - Live video stream
-- `POST /api/setConfidence` - Adjust detection confidence
-
-## 🐛 Common Issues
-
-**"OPENAI_API_KEY is not set"**
-- Create `.env` file in `lutongbahAI/` with your API key
-
-**Camera not working**
-- Try different camera indices: `--source "1"`
-
-**No module found**
-- Ensure venv is activated: `.\.venv\Scripts\Activate.ps1`
-
-👉 See [Full Documentation](lutongbahAI/README.md) for complete troubleshooting.
-
-## 📄 License
-
-Educational and research purposes.
-
----
-
-**Note**: This system requires an OpenAI API key with credits. Usage will incur API costs.
+- Frontend → Vercel (`NEXT_PUBLIC_API_URL` = your API origin)
+- API → Hugging Face Spaces / Fly / a VM (not Vercel)
+- `best.pt` → `api/weights/` or Hugging Face Hub (not GitHub)

@@ -1,9 +1,0 @@
-Banana
-Carrot
-Chicken
-Eggplant
-Egg
-Garlic
-Onion
-Potato
-Tomato

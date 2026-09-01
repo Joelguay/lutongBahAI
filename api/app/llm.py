@@ -2,48 +2,78 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from typing import Any
 
-from app.config import openai_model
+from app.config import gemini_model
+
+_PLACEHOLDER_KEYS = {
+    "",
+    "paste_your_key_here",
+    "your-api-key",
+    "YOUR_API_KEY",
+}
 
 
-def openai_configured() -> bool:
-    return bool(os.getenv("OPENAI_API_KEY"))
+def llm_configured() -> bool:
+    key = os.getenv("GEMINI_API_KEY", "").strip()
+    return bool(key) and key not in _PLACEHOLDER_KEYS
 
 
 def _client():
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not api_key or api_key in _PLACEHOLDER_KEYS:
         return None
-    from openai import OpenAI
+    from google import genai
 
-    return OpenAI(api_key=api_key)
+    return genai.Client(api_key=api_key)
+
+
+def _parse_json(text: str) -> dict[str, Any]:
+    cleaned = text.strip()
+    fenced = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", cleaned)
+    if fenced:
+        cleaned = fenced.group(1).strip()
+    return json.loads(cleaned)
 
 
 def _complete(prompt: str, max_tokens: int) -> dict[str, Any]:
+    from google.genai import types
+
     client = _client()
     if client is None:
-        raise RuntimeError("OPENAI_API_KEY is not set")
+        raise RuntimeError("GEMINI_API_KEY is not set")
 
-    response = client.chat.completions.create(
-        model=openai_model(),
-        response_format={"type": "json_object"},
-        messages=[{"role": "user", "content": prompt}],
-        max_tokens=max_tokens,
-        temperature=0.6,
+    # 2.5 Flash spends max_output_tokens on thinking unless budget is 0,
+    # which truncated JSON mid-string (json.JSONDecodeError).
+    response = client.models.generate_content(
+        model=gemini_model(),
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            response_mime_type="application/json",
+            temperature=0.6,
+            max_output_tokens=max_tokens,
+            thinking_config=types.ThinkingConfig(thinking_budget=0),
+        ),
     )
-    text = response.choices[0].message.content or "{}"
-    return json.loads(text)
+    text = response.text or "{}"
+    try:
+        return _parse_json(text)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"Gemini returned invalid JSON: {exc}") from exc
 
 
 def generate_recipes(ingredients: list[str]) -> list[dict[str, str]]:
     joined = ", ".join(ingredients)
     prompt = f"""
 You are an expert Filipino home cook.
-Given these ingredients: {joined}
+Given these scanned ingredients: {joined}
 
-Suggest exactly 5 authentic Filipino household recipes that use these ingredients
-(you may add pantry staples like rice, soy sauce, vinegar, garlic, oil, salt).
+Suggest exactly 5 authentic Filipino household recipes that use these ingredients.
+
+You may assume pantry staples the camera cannot see: rice, water, cooking oil,
+salt, soy sauce (toyo), and vinegar (suka).
+Do not add any other meat, seafood, vegetable, or fruit that was not listed.
 
 Rules:
 - Recipe names only (e.g. "Chicken Adobo"), no extra ingredients in the title
@@ -53,7 +83,7 @@ Rules:
 Return JSON only:
 {{"recipes": [{{"name": "Dish Name", "description": "One sentence."}}]}}
 """
-    data = _complete(prompt, max_tokens=800)
+    data = _complete(prompt, max_tokens=4096)
     recipes = data.get("recipes") or []
     cleaned = []
     for item in recipes[:5]:
@@ -72,6 +102,10 @@ def generate_steps(name: str, ingredients: list[str]) -> dict[str, Any]:
 You are an expert Filipino home cook.
 Create a home-kitchen recipe for "{name}" that prominently uses: {joined}.
 
+You may assume pantry staples the camera cannot see: rice, water, cooking oil,
+salt, soy sauce (toyo), and vinegar (suka).
+Do not add any other meat, seafood, vegetable, or fruit that was not listed.
+
 Return JSON only with this shape:
 {{
   "name": "{name} (short English subtitle)",
@@ -85,11 +119,11 @@ Return JSON only with this shape:
 
 Rules:
 - Keep the dish name as "{name}" (subtitle in parentheses is ok)
-- Required ingredients must appear in the ingredients list, not marked optional
+- Required scanned ingredients must appear in the ingredients list, not marked optional
 - Authentic Filipino household methods
 - No markdown bullets inside strings
 """
-    data = _complete(prompt, max_tokens=2000)
+    data = _complete(prompt, max_tokens=8192)
     steps = []
     for step in data.get("steps") or []:
         title = str(step.get("title", "")).strip()

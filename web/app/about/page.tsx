@@ -8,8 +8,12 @@ const limits = [
     body: "Recipes stay focused on lutong bahay. The model is trained on household ingredients, not every cuisine.",
   },
   {
+    title: "33 ingredients for now",
+    body: "The detector knows 33 classes from best.pt. Other foods show as not yet available. Rice, toyo, and suka are pantry staples in recipes, not camera classes.",
+  },
+  {
     title: "Visible ingredients only",
-    body: "The camera can see garlic and chicken. It cannot see toyo, suka, or gata — add those yourself as chips.",
+    body: "Scan or pick from the 33-class list. The camera cannot see sauces — recipes may still use rice, oil, salt, toyo, and suka.",
   },
   {
     title: "Needs the internet",
@@ -40,7 +44,7 @@ export default function AboutPage() {
       <h2 className="mt-12 font-display text-3xl text-pink">How it works</h2>
       <ol className="mt-4 list-decimal space-y-3 pl-5 text-ink">
         <li>Open Camera and allow the browser to use your webcam.</li>
-        <li>Place ingredients in view. Add anything the model missed.</li>
+        <li>Place ingredients in view. Add a missed class from the 33-name list if needed.</li>
         <li>Generate five recipe ideas, pick one, and cook from the steps.</li>
       </ol>
 

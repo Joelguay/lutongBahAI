@@ -29,7 +29,7 @@ export type HealthResponse = {
   ok: boolean;
   detector: string;
   classes: string[];
-  openai_configured: boolean;
+  llm_configured: boolean;
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";

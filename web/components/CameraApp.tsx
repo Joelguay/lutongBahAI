@@ -11,6 +11,7 @@ import {
   type RecipeSteps,
   type RecipeSummary,
 } from "@/lib/api";
+import { resolveClassName } from "@/lib/ingredients";
 
 type View = "camera" | "list" | "steps";
 
@@ -45,6 +46,7 @@ export function CameraApp() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const classes = health?.classes ?? [];
   const ingredients = Array.from(new Set([...detected, ...manual]));
 
   useEffect(() => {
@@ -144,7 +146,13 @@ export function CameraApp() {
   const addManual = () => {
     const name = draft.trim();
     if (!name) return;
-    setManual((prev) => (prev.includes(name) ? prev : [...prev, name]));
+    const resolved = resolveClassName(name, classes);
+    if (!resolved) {
+      setError(`"${name}" is not yet available.`);
+      return;
+    }
+    setError(null);
+    setManual((prev) => (prev.includes(resolved) ? prev : [...prev, resolved]));
     setDraft("");
   };
 
@@ -155,7 +163,7 @@ export function CameraApp() {
 
   const showRecipes = async () => {
     if (ingredients.length === 0) {
-      setError("Add at least one ingredient (scan or type).");
+      setError("Add at least one ingredient (scan or pick a class).");
       return;
     }
     setLoading(true);
@@ -304,8 +312,8 @@ export function CameraApp() {
       ) : null}
       {health?.detector === "mock" ? (
         <p className="mt-4 rounded-2xl bg-white p-4 text-center text-muted shadow-sm">
-          Detection is in mock mode (no <code>best.pt</code> yet). Type
-          ingredients below — recipes still work when OpenAI is configured.
+          Detection is in mock mode (no <code>best.pt</code> yet). Pick a class
+          from the list below — recipes still work when Gemini is configured.
         </p>
       ) : null}
 
@@ -359,9 +367,13 @@ export function CameraApp() {
 
       <section className="mx-auto mt-8 max-w-[640px]">
         <h2 className="font-display text-xl text-pink">Ingredients</h2>
+        <p className="mt-1 text-sm text-muted">
+          This version recognizes {classes.length || 33} ingredients. Scan or pick
+          from the list. Rice, toyo, and suka are assumed in recipes.
+        </p>
         <div className="mt-3 flex flex-wrap gap-2">
           {ingredients.length === 0 ? (
-            <p className="text-sm text-muted">None yet — scan or type a name.</p>
+            <p className="text-sm text-muted">None yet — scan or pick a class.</p>
           ) : (
             ingredients.map((name) => (
               <button
@@ -385,9 +397,15 @@ export function CameraApp() {
           <input
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
-            placeholder="Add garlic, toyo, rice..."
+            list="ingredient-classes"
+            placeholder="Pick a class, e.g. Garlic"
             className="flex-1 rounded-full border border-black/10 bg-white px-4 py-2"
           />
+          <datalist id="ingredient-classes">
+            {classes.map((name) => (
+              <option key={name} value={name} />
+            ))}
+          </datalist>
           <button
             type="submit"
             className="rounded-full bg-pink px-5 py-2 font-display text-white"

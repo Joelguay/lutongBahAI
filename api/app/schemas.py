@@ -17,7 +17,7 @@ class HealthResponse(BaseModel):
     ok: bool
     detector: str
     classes: list[str]
-    openai_configured: bool
+    llm_configured: bool
 
 
 class RecipeItem(BaseModel):

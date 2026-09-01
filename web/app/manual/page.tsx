@@ -9,7 +9,7 @@ const steps = [
   },
   {
     title: "Scan ingredients",
-    body: "Place what you have in view. Detected names appear as chips. Add soy sauce, rice, or anything the camera cannot see.",
+    body: "Place what you have in view. Detected names appear as chips. If the camera misses one, pick it from the 33-class list.",
   },
   {
     title: "Generate recipes",

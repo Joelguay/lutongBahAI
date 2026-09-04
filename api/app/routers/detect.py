@@ -1,6 +1,7 @@
 from fastapi import APIRouter, File, HTTPException, Query, UploadFile
 
-from app.ml.model import class_names, detect_image, detector_mode
+from app.ingredients import display_class_names
+from app.ml.model import detect_image, detector_mode
 from app.schemas import DetectResponse
 
 router = APIRouter()
@@ -8,7 +9,7 @@ router = APIRouter()
 
 @router.get("/classes")
 def get_classes() -> dict[str, list[str]]:
-    return {"classes": class_names()}
+    return {"classes": display_class_names()}
 
 
 @router.post("/detect", response_model=DetectResponse)

@@ -57,12 +57,15 @@ def detect_image(image_bytes: bytes, conf: float) -> dict[str, Any]:
     results = _model.predict(frame, conf=conf, verbose=False, imgsz=640)
     result = results[0] if isinstance(results, (list, tuple)) else results
 
+    from app.ingredients import display_name
+
     names: set[str] = set()
     boxes: list[dict[str, Any]] = []
     if result is not None and getattr(result, "boxes", None) is not None:
         for box in result.boxes:
             cls_id = int(box.cls[0])
-            name = str(_model.names.get(cls_id, cls_id))
+            roboflow = str(_model.names.get(cls_id, cls_id))
+            name = display_name(roboflow)
             score = float(box.conf[0])
             x1, y1, x2, y2 = [float(v) for v in box.xyxy[0]]
             names.add(name)

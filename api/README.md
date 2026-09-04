@@ -27,7 +27,9 @@ Mock mode returns no boxes. Recipe endpoints still only accept names from `GET /
 
 ## Ingredient allowlist
 
-`POST /v1/recipes` and `POST /v1/recipes/steps` accept only detector class names (33 with `best.pt`). Unknown strings return 400: `"…" is not yet available.`
+`POST /v1/recipes` and `POST /v1/recipes/steps` accept detector classes (33 with `best.pt`), including Roboflow names (`GBellP`) and display names (`Green bell pepper`). Unknown strings return 400: `"…" is not yet available.`
+
+Readable names are defined in `app/ingredients.py` (`DISPLAY_NAMES`). They do not change `best.pt`.
 
 Gemini may still use pantry staples (rice, oil, salt, toyo, suka) in the cooked recipe. Those are not typed ingredients.
 

@@ -50,7 +50,7 @@ Open http://localhost:3000
 
 ## Ingredient classes
 
-This version is trained on **33** YOLO classes (live list: `GET /v1/classes` or `/v1/health`). Typed names that are not in that list are rejected with `"…" is not yet available.`
+This version is trained on **33** YOLO classes (live list: `GET /v1/classes`). The API maps Roboflow labels such as `GBellP` to readable names (`Green bell pepper`) in `api/app/ingredients.py` — that is not a retrain. Typed names that are not in that list are rejected with `"…" is not yet available.`
 
 Recipes may still use pantry staples the camera cannot see: rice, water, oil, salt, soy sauce (toyo), vinegar (suka). Do not type those as ingredients.
 

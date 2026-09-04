@@ -5,8 +5,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import frontend_origins
+from app.ingredients import display_class_names
 from app.llm import llm_configured
-from app.ml.model import class_names, detector_mode, init_model
+from app.ml.model import detector_mode, init_model
 from app.routers import detect, recipes
 from app.schemas import HealthResponse
 
@@ -32,7 +33,7 @@ def health() -> HealthResponse:
     return HealthResponse(
         ok=True,
         detector=detector_mode(),
-        classes=class_names(),
+        classes=display_class_names(),
         llm_configured=llm_configured(),
     )
 
